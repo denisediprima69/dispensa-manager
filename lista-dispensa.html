@@ -332,7 +332,8 @@
 <body>
 <div class="app">
   <header>
-    <h1>La tua dispensa</h1>
+    <a href="index.html" style="font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600;">← Home</a>
+    <h1 style="margin-top: 6px;">La tua dispensa</h1>
     <div class="summary-bar">
       <div class="summary-pill">
         <div class="num" id="total-count">0</div>
@@ -395,6 +396,26 @@
       await window.storage.set('dispensa-prodotti', JSON.stringify(products), false);
     } catch (e) {
       console.error('Errore salvataggio', e);
+    }
+  }
+
+  async function incrementConsumedCount() {
+    try {
+      const result = await window.storage.get('dispensa-consumati-count', false);
+      const current = result ? parseInt(result.value, 10) || 0 : 0;
+      await window.storage.set('dispensa-consumati-count', String(current + 1), false);
+    } catch (e) {
+      console.error('Errore aggiornamento contatore', e);
+    }
+  }
+
+  async function decrementConsumedCount() {
+    try {
+      const result = await window.storage.get('dispensa-consumati-count', false);
+      const current = result ? parseInt(result.value, 10) || 0 : 0;
+      await window.storage.set('dispensa-consumati-count', String(Math.max(0, current - 1)), false);
+    } catch (e) {
+      console.error('Errore aggiornamento contatore', e);
     }
   }
 
@@ -520,6 +541,7 @@
         lastRemoved = products[idx];
         products.splice(idx, 1);
         await saveProducts(products);
+        await incrementConsumedCount();
         showUndoToast(lastRemoved.name);
         render();
       });
@@ -541,6 +563,7 @@
     const products = await loadProducts();
     products.push(lastRemoved);
     await saveProducts(products);
+    await decrementConsumedCount();
     lastRemoved = null;
     clearTimeout(undoTimer);
     toast.classList.remove('show');

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dispensa — Benvenuto</title>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --warning: #B8842F;
+    --warning-soft: #F6EEDF;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  main {
+    flex: 1;
+    padding: 0 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  /* --- Hero --- */
+  .hero {
+    padding: 44px 0 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .hero-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-icon svg { width: 32px; height: 32px; stroke: var(--accent); }
+
+  .hero h1 {
+    font-size: 25px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .hero p {
+    font-size: 14.5px;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 300px;
+    line-height: 1.5;
+  }
+
+  .hero-cta {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    width: 100%;
+    transition: transform 0.08s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--border); }
+
+  /* --- Section heading --- */
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+  }
+
+  /* --- Tutorial steps --- */
+  .tutorial-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .step-body h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .step-body p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* --- Environmental section --- */
+  .eco-card {
+    background: var(--accent);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .eco-card::before {
+    content: "";
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+  }
+
+  .eco-card::after {
+    content: "";
+    position: absolute;
+    bottom: -50px;
+    left: -20px;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .eco-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eco-icon svg { width: 20px; height: 20px; stroke: white; }
+
+  .eco-card h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eco-card p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    margin: 0 0 16px;
+    opacity: 0.92;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eco-stats {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .eco-stat {
+    flex: 1;
+    background: rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .eco-stat .num {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .eco-stat .label {
+    font-size: 10.5px;
+    opacity: 0.85;
+    margin-top: 3px;
+    line-height: 1.3;
+  }
+
+  /* --- Impact tracker (personal, only shows if data present) --- */
+  .impact-note {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    padding: 0 10px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <main>
+
+    <section class="hero">
+      <div class="hero-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 3h16v18H4z"></path>
+          <path d="M4 9h16"></path>
+          <path d="M4 15h16"></path>
+          <path d="M9 3v18"></path>
+        </svg>
+      </div>
+      <h1>Benvenuto in Dispensa</h1>
+      <p>Tieni traccia di ciò che hai in casa e non buttare più cibo per una scadenza dimenticata</p>
+
+      <div class="hero-cta">
+        <a href="lista-dispensa.html" class="btn btn-primary">Vai alla dispensa</a>
+        <a href="aggiungi-prodotto.html" class="btn btn-secondary">Aggiungi il primo prodotto</a>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Come funziona</p>
+      <div class="tutorial-list">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-body">
+            <h3>Scatta una foto</h3>
+            <p>Inquadra l'etichetta del prodotto: l'app cerca da sola la data di scadenza stampata sulla confezione</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-body">
+            <h3>Conferma e organizza</h3>
+            <p>Controlla la data trovata, scegli dove si trova il prodotto — frigo, freezer, dispensa o cantina</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-body">
+            <h3>Ricevi un promemoria</h3>
+            <p>Una settimana prima della scadenza ti avvisiamo, così hai il tempo di consumarlo o cucinarlo</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Perché conta</p>
+      <div class="eco-card">
+        <div class="eco-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 4 13c0-4 3-7 7-7s7 3 7 7"></path>
+            <path d="M11 20v-9"></path>
+            <path d="M11 11c0-4 2-7 6-9"></path>
+          </svg>
+        </div>
+        <h2>Ogni prodotto salvato conta</h2>
+        <p>Una parte enorme del cibo prodotto nel mondo finisce nella spazzatura prima ancora di essere consumato — spesso non perché sia andato a male, ma solo perché ce ne dimentichiamo. Tenere traccia di quello che hai in casa è uno dei modi più semplici per ridurre gli sprechi, risparmiare e fare qualcosa di concreto per l'ambiente.</p>
+        <div class="eco-stats">
+          <div class="eco-stat">
+            <div class="num" id="stat-saved">0</div>
+            <div class="label">Prodotti salvati da te</div>
+          </div>
+          <div class="eco-stat">
+            <div class="num" id="stat-tracked">0</div>
+            <div class="label">In dispensa ora</div>
+          </div>
+        </div>
+      </div>
+      <p class="impact-note" id="impact-note" style="display:none;"></p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  async function loadProducts() {
+    try {
+      const result = await window.storage.get('dispensa-prodotti', false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function loadConsumedCount() {
+    try {
+      const result = await window.storage.get('dispensa-consumati-count', false);
+      return result ? parseInt(result.value, 10) || 0 : 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  async function renderStats() {
+    const products = await loadProducts();
+    const consumedCount = await loadConsumedCount();
+
+    document.getElementById('stat-tracked').textContent = products.length;
+    document.getElementById('stat-saved').textContent = consumedCount;
+
+    const note = document.getElementById('impact-note');
+    if (products.length > 0 || consumedCount > 0) {
+      note.style.display = 'block';
+      note.textContent = 'Continua così: ogni prodotto che segni come consumato invece che buttato è uno spreco in meno.';
+    }
+  }
+
+  renderStats();
+})();
+</script>
+</body>
+</html>
