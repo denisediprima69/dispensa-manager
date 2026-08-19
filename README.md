@@ -1,6 +1,8 @@
-# Dispensa App
+# Lo Stipo
 
-App per tenere sotto controllo la dispensa di casa (frigo, freezer, dispensa, cantina): foto del prodotto, riconoscimento automatico della data di scadenza (OCR), notifica una settimana prima della scadenza. Obiettivo: ridurre lo spreco alimentare.
+App per tenere sotto controllo la dispensa di casa ("lo Stipo": frigo, freezer, dispensa, cantina): foto del prodotto, riconoscimento automatico della data di scadenza (OCR), notifica una settimana prima della scadenza. Obiettivo: ridurre lo spreco alimentare.
+
+Mascotte prevista: **Lo Stipino**, una nuvoletta di polvere doodle — asset grafico da integrare quando pronto.
 
 ## Stato del progetto
 

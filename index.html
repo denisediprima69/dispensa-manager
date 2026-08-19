@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dispensa — Benvenuto</title>
+<title>Lo Stipo — Benvenuto</title>
 <style>
   :root {
     --bg: #F7F7F5;
@@ -113,6 +113,82 @@
 
   .btn-primary { background: var(--accent); color: white; }
   .btn-secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--border); }
+
+  /* --- Da salvare oggi --- */
+  .urgent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .urgent-card-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .urgent-card-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .urgent-card-sub {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0 0 14px;
+  }
+
+  .urgent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .urgent-item:first-of-type { border-top: none; padding-top: 0; }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+  }
+
+  .status-dot.ok { background: var(--accent); }
+  .status-dot.warning { background: var(--warning); }
+  .status-dot.urgent { background: var(--danger); }
+
+  .urgent-item .u-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .urgent-item .u-days {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .urgent-card-empty {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .stipino-line {
+    font-size: 12.5px;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
 
   /* --- Section heading --- */
   .section-label {
@@ -282,13 +358,24 @@
           <path d="M9 3v18"></path>
         </svg>
       </div>
-      <h1>Benvenuto in Dispensa</h1>
-      <p>Tieni traccia di ciò che hai in casa e non buttare più cibo per una scadenza dimenticata</p>
+      <h1>Lo Stipo</h1>
+      <p>Vediamo cosa abbiamo da salvare oggi</p>
 
       <div class="hero-cta">
-        <a href="lista-dispensa.html" class="btn btn-primary">Vai alla dispensa</a>
-        <a href="aggiungi-prodotto.html" class="btn btn-secondary">Aggiungi il primo prodotto</a>
-        <a href="lista-spesa.html" class="btn btn-secondary">Lista della spesa</a>
+        <a href="lista-dispensa.html" class="btn btn-primary">Vai allo Stipo</a>
+        <a href="aggiungi-prodotto.html" class="btn btn-secondary">+ Aggiungi prodotto</a>
+        <a href="lista-spesa.html" class="btn btn-secondary">🛒 Lista della spesa</a>
+      </div>
+    </section>
+
+    <section>
+      <div class="urgent-card">
+        <div class="urgent-card-header">
+          <h2>🔴 Da salvare oggi</h2>
+        </div>
+        <p class="urgent-card-sub">Questi prodotti sono i prossimi a scadere</p>
+        <div id="urgent-items-list"></div>
+        <p class="stipino-line" id="stipino-line" style="display:none;">👀 Partiamo da questi?</p>
       </div>
     </section>
 
@@ -368,6 +455,61 @@
     }
   }
 
+  function daysUntil(iso) {
+    const target = new Date(iso);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return Math.round((target - now) / (1000 * 60 * 60 * 24));
+  }
+
+  function statusClass(days) {
+    if (days <= 2) return 'urgent';
+    if (days <= 7) return 'warning';
+    return 'ok';
+  }
+
+  function daysLabel(days) {
+    if (days < 0) return 'Scaduto';
+    if (days === 0) return 'Oggi';
+    if (days === 1) return 'Domani';
+    return `tra ${days} giorni`;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function renderUrgentSection() {
+    const products = await loadProducts();
+    const urgent = products
+      .filter(p => daysUntil(p.expiryDate) <= 7)
+      .sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate))
+      .slice(0, 3);
+
+    const list = document.getElementById('urgent-items-list');
+    const stipinoLine = document.getElementById('stipino-line');
+
+    if (urgent.length === 0) {
+      list.innerHTML = `<p class="urgent-card-empty">Niente in scadenza a breve, lo Stipo è tranquillo 🌿</p>`;
+      stipinoLine.style.display = 'none';
+      return;
+    }
+
+    list.innerHTML = urgent.map(p => {
+      const days = daysUntil(p.expiryDate);
+      return `
+        <div class="urgent-item">
+          <div class="status-dot ${statusClass(days)}"></div>
+          <div class="u-name">${escapeHtml(p.name)}</div>
+          <div class="u-days">${daysLabel(days)}</div>
+        </div>
+      `;
+    }).join('');
+    stipinoLine.style.display = 'block';
+  }
+
   async function renderStats() {
     const products = await loadProducts();
     const consumedCount = await loadConsumedCount();
@@ -383,6 +525,7 @@
   }
 
   renderStats();
+  renderUrgentSection();
 })();
 </script>
 </body>
