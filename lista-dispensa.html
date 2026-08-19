@@ -294,7 +294,106 @@
     .fab { right: 24px; left: auto; transform: none; }
   }
 
-  /* --- Toast --- */
+  .product-info { cursor: pointer; }
+
+  /* --- Edit modal --- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28,28,26,0.45);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .modal-sheet {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    padding: 20px;
+    transform: translateY(20px);
+    transition: transform 0.2s ease;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.show .modal-sheet { transform: translateY(0); }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .modal-header h3 { margin: 0; font-size: 17px; font-weight: 700; }
+
+  .modal-close {
+    background: var(--bg);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .modal-field { margin-bottom: 14px; }
+
+  .modal-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+  }
+
+  .modal-field input,
+  .modal-field select {
+    width: 100%;
+    padding: 12px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 15px;
+    color: var(--text);
+    font-family: inherit;
+  }
+
+  .modal-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .modal-btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .modal-btn-save { background: var(--accent); color: white; }
+  .modal-btn-delete { background: var(--danger-soft); color: var(--danger); }
   .toast {
     position: fixed;
     bottom: 24px;
@@ -359,7 +458,57 @@
   <a href="aggiungi-prodotto.html" class="fab" aria-label="Aggiungi prodotto">+</a>
 </div>
 
-<div class="toast" id="toast">
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>Modifica prodotto</h3>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="modal-field">
+      <label for="edit-name">Nome prodotto</label>
+      <input type="text" id="edit-name">
+    </div>
+    <div class="modal-row-2">
+      <div class="modal-field">
+        <label for="edit-category">Categoria</label>
+        <select id="edit-category">
+          <option value="latticini">Latticini</option>
+          <option value="uova">Uova</option>
+          <option value="carne">Carne</option>
+          <option value="pesce">Pesce</option>
+          <option value="verdura">Verdura</option>
+          <option value="frutta">Frutta</option>
+          <option value="conserve">Conserve</option>
+          <option value="surgelati">Surgelati</option>
+          <option value="altro">Altro</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label for="edit-qty">Quantità</label>
+        <input type="number" id="edit-qty" min="1">
+      </div>
+    </div>
+    <div class="modal-field">
+      <label for="edit-date">Data di scadenza</label>
+      <input type="date" id="edit-date">
+    </div>
+    <div class="modal-field">
+      <label for="edit-location">Dove si trova</label>
+      <select id="edit-location">
+        <option value="frigo">Frigo</option>
+        <option value="freezer">Freezer</option>
+        <option value="dispensa">Dispensa</option>
+        <option value="cantina">Cantina</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-delete" id="modal-delete-btn">Elimina</button>
+      <button class="modal-btn modal-btn-save" id="modal-save-btn">Salva modifiche</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
   <span id="toast-text"></span>
   <button id="undo-btn">Annulla</button>
 </div>
@@ -373,6 +522,17 @@
   const toast = document.getElementById('toast');
   const toastText = document.getElementById('toast-text');
   const undoBtn = document.getElementById('undo-btn');
+
+  const editModal = document.getElementById('edit-modal');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  const modalSaveBtn = document.getElementById('modal-save-btn');
+  const modalDeleteBtn = document.getElementById('modal-delete-btn');
+  const editName = document.getElementById('edit-name');
+  const editCategory = document.getElementById('edit-category');
+  const editQty = document.getElementById('edit-qty');
+  const editDate = document.getElementById('edit-date');
+  const editLocation = document.getElementById('edit-location');
+  let editingId = null;
 
   const ZONES = [
     { key: 'frigo', label: 'Frigo', icon: '❄️' },
@@ -462,7 +622,7 @@
         <button class="check-btn" aria-label="Segna come consumato">
           <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </button>
-        <div class="product-info">
+        <div class="product-info" data-id="${p.id}">
           <div class="name">${escapeHtml(p.name)}</div>
           <div class="meta">${formatDateIt(p.expiryDate)}${qtyText}</div>
         </div>
@@ -549,6 +709,87 @@
         render();
       });
     });
+
+    document.querySelectorAll('.product-info').forEach(el => {
+      el.addEventListener('click', async () => {
+        const id = el.dataset.id;
+        const products = await loadProducts();
+        const product = products.find(p => p.id === id);
+        if (!product) return;
+        openEditModal(product);
+      });
+    });
+  }
+
+  function openEditModal(product) {
+    editingId = product.id;
+    editName.value = product.name;
+    editCategory.value = product.category || 'altro';
+    editQty.value = product.quantity || 1;
+    editDate.value = product.expiryDate;
+    editLocation.value = product.location;
+    editModal.classList.add('show');
+  }
+
+  function closeEditModal() {
+    editModal.classList.remove('show');
+    editingId = null;
+  }
+
+  modalCloseBtn.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+
+  modalSaveBtn.addEventListener('click', async () => {
+    if (!editingId) return;
+    const name = editName.value.trim();
+    const date = editDate.value;
+    if (!name || !date) {
+      showUndoToastSimple('Compila nome e data di scadenza');
+      return;
+    }
+
+    const products = await loadProducts();
+    const idx = products.findIndex(p => p.id === editingId);
+    if (idx === -1) return;
+
+    products[idx] = {
+      ...products[idx],
+      name,
+      category: editCategory.value,
+      quantity: parseInt(editQty.value, 10) || 1,
+      expiryDate: date,
+      location: editLocation.value
+    };
+    await saveProducts(products);
+    closeEditModal();
+    render();
+  });
+
+  modalDeleteBtn.addEventListener('click', async () => {
+    if (!editingId) return;
+    const products = await loadProducts();
+    const idx = products.findIndex(p => p.id === editingId);
+    if (idx === -1) return;
+
+    lastRemoved = products[idx];
+    products.splice(idx, 1);
+    await saveProducts(products);
+    closeEditModal();
+    showUndoToast(lastRemoved.name);
+    render();
+  });
+
+  function showUndoToastSimple(msg) {
+    clearTimeout(undoTimer);
+    toastText.textContent = msg;
+    undoBtn.style.display = 'none';
+    toast.classList.add('show');
+    undoTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      undoBtn.style.display = 'inline';
+    }, 2200);
   }
 
   function showUndoToast(name) {

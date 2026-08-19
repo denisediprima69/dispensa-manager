@@ -185,24 +185,61 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .date-suggestions {
-    padding: 12px 16px 16px;
+  .date-confirm-panel {
+    padding: 18px 16px;
     border-top: 1px solid var(--border);
   }
 
-  .date-suggestions p {
+  .confirm-label {
     font-size: 12px;
     color: var(--text-muted);
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    text-align: center;
+  }
+
+  .confirm-date-big {
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .confirm-question {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    text-align: center;
+    margin: 0 0 14px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-confirm { width: auto; flex: 1; padding: 12px 10px; font-size: 13.5px; }
+
+  .alt-dates-row {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .alt-dates-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+    text-align: center;
   }
 
   .date-chip-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    justify-content: center;
   }
 
   .date-chip {
@@ -221,10 +258,25 @@
     color: white;
   }
 
-  .date-chip.none-found {
-    background: transparent;
-    border: 1px dashed var(--border);
-    color: var(--text-muted);
+  .confirmed-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .confirmed-badge svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--accent);
+    stroke-width: 3;
+    background: var(--accent-soft);
+    border-radius: 50%;
+    padding: 3px;
+    box-sizing: content-box;
   }
 
   /* --- Form --- */
@@ -403,9 +455,30 @@
           <div class="spinner"></div>
           <span id="ocr-status-text">Leggo l'etichetta...</span>
         </div>
-        <div id="date-suggestions" class="date-suggestions" style="display:none;">
-          <p>Data trovata nella foto</p>
-          <div id="date-chip-row" class="date-chip-row"></div>
+        <div id="date-confirm-panel" class="date-confirm-panel" style="display:none;">
+          <div id="date-found-view">
+            <p class="confirm-label">Data trovata nella foto</p>
+            <div class="confirm-date-big" id="confirm-date-text">—</div>
+            <p class="confirm-question">È corretta?</p>
+            <div class="confirm-actions">
+              <button class="btn btn-primary btn-confirm" id="confirm-yes-btn">✓ Sì, è corretta</button>
+              <button class="btn btn-secondary btn-confirm" id="confirm-edit-btn">✏️ Modifica</button>
+            </div>
+            <div id="alt-dates-row" class="alt-dates-row" style="display:none;">
+              <p class="alt-dates-label">Altre date trovate nella foto</p>
+              <div class="date-chip-row" id="alt-dates-chips"></div>
+            </div>
+          </div>
+          <div id="date-notfound-view" style="display:none;">
+            <p class="confirm-label">Non sono riuscito a leggere una data</p>
+            <p class="confirm-question" style="margin-top:2px;">Inseriscila tu qui sotto, nel campo "Data di scadenza" ↓</p>
+          </div>
+          <div id="date-confirmed-view" style="display:none;">
+            <div class="confirmed-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span id="confirmed-date-text">Data confermata</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -476,8 +549,16 @@
   const retakeBtn = document.getElementById('retake-btn');
   const ocrStatus = document.getElementById('ocr-status');
   const ocrStatusText = document.getElementById('ocr-status-text');
-  const dateSuggestions = document.getElementById('date-suggestions');
-  const dateChipRow = document.getElementById('date-chip-row');
+  const dateConfirmPanel = document.getElementById('date-confirm-panel');
+  const dateFoundView = document.getElementById('date-found-view');
+  const dateNotfoundView = document.getElementById('date-notfound-view');
+  const dateConfirmedView = document.getElementById('date-confirmed-view');
+  const confirmDateText = document.getElementById('confirm-date-text');
+  const confirmedDateText = document.getElementById('confirmed-date-text');
+  const confirmYesBtn = document.getElementById('confirm-yes-btn');
+  const confirmEditBtn = document.getElementById('confirm-edit-btn');
+  const altDatesRow = document.getElementById('alt-dates-row');
+  const altDatesChips = document.getElementById('alt-dates-chips');
   const productDateInput = document.getElementById('product-date');
   const productNameInput = document.getElementById('product-name');
   const productCategoryInput = document.getElementById('product-category');
@@ -525,7 +606,7 @@
     cameraInput.value = '';
     captureEmptyState.style.display = 'flex';
     previewState.style.display = 'none';
-    dateSuggestions.style.display = 'none';
+    dateConfirmPanel.style.display = 'none';
     ocrStatus.style.display = 'none';
   });
 
@@ -611,34 +692,59 @@
   }
 
   function showDateSuggestions(dates) {
-    dateSuggestions.style.display = 'block';
-    dateChipRow.innerHTML = '';
+    dateConfirmPanel.style.display = 'block';
+    dateFoundView.style.display = 'none';
+    dateNotfoundView.style.display = 'none';
+    dateConfirmedView.style.display = 'none';
+    altDatesRow.style.display = 'none';
+    altDatesChips.innerHTML = '';
 
     if (dates.length === 0) {
-      const chip = document.createElement('div');
-      chip.className = 'date-chip none-found';
-      chip.textContent = 'Nessuna data trovata, inseriscila sotto ↓';
-      dateChipRow.appendChild(chip);
+      dateNotfoundView.style.display = 'block';
+      productDateInput.focus();
       return;
     }
 
-    dates.forEach((iso, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'date-chip';
-      chip.textContent = formatDateIt(iso);
-      chip.dataset.iso = iso;
-      if (idx === 0) {
-        chip.classList.add('selected');
-        productDateInput.value = iso;
-      }
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        productDateInput.value = iso;
+    const [bestGuess, ...alternatives] = dates;
+    productDateInput.value = bestGuess;
+    confirmDateText.textContent = formatDateIt(bestGuess);
+    dateFoundView.style.display = 'block';
+
+    if (alternatives.length > 0) {
+      altDatesRow.style.display = 'block';
+      alternatives.forEach((iso) => {
+        const chip = document.createElement('div');
+        chip.className = 'date-chip';
+        chip.textContent = formatDateIt(iso);
+        chip.addEventListener('click', () => {
+          productDateInput.value = iso;
+          confirmDateText.textContent = formatDateIt(iso);
+          document.querySelectorAll('#alt-dates-chips .date-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+        });
+        altDatesChips.appendChild(chip);
       });
-      dateChipRow.appendChild(chip);
-    });
+    }
   }
+
+  confirmYesBtn.addEventListener('click', () => {
+    dateFoundView.style.display = 'none';
+    dateConfirmedView.style.display = 'block';
+    confirmedDateText.textContent = `Data confermata: ${formatDateIt(productDateInput.value)}`;
+  });
+
+  confirmEditBtn.addEventListener('click', () => {
+    dateConfirmPanel.style.display = 'none';
+    productDateInput.focus();
+    productDateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Se l'utente modifica manualmente la data dopo averla confermata, aggiorna il badge
+  productDateInput.addEventListener('change', () => {
+    if (dateConfirmedView.style.display === 'block' && productDateInput.value) {
+      confirmedDateText.textContent = `Data confermata: ${formatDateIt(productDateInput.value)}`;
+    }
+  });
 
   function formatDateIt(iso) {
     const [y, m, d] = iso.split('-');
