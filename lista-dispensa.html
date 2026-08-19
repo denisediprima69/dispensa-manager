@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La tua dispensa</title>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --danger-soft: #F7E9E7;
+    --warning: #B8842F;
+    --warning-soft: #F6EEDF;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header h1 {
+    font-size: 19px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .summary-bar {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .summary-pill {
+    flex: 1;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: left;
+  }
+
+  .summary-pill .num {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .summary-pill .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .summary-pill.urgent .num { color: var(--danger); }
+
+  /* --- Tabs sort --- */
+  .sort-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 14px 20px 0;
+  }
+
+  .sort-tab {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .sort-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  main {
+    flex: 1;
+    padding: 16px 20px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* --- Section (per location) --- */
+  .zone-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .zone-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .zone-header .zone-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .zone-header h2 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    flex: 1;
+  }
+
+  .zone-header .zone-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* --- Product row --- */
+  .product-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .check-btn {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    transition: all 0.15s ease;
+  }
+
+  .check-btn:hover {
+    border-color: var(--accent);
+  }
+
+  .check-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: white;
+    stroke-width: 3;
+  }
+
+  .product-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .product-info .name {
+    font-size: 14.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .product-info .meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .badge {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge.ok { background: var(--accent-soft); color: var(--accent); }
+  .badge.warning { background: var(--warning-soft); color: var(--warning); }
+  .badge.urgent { background: var(--danger-soft); color: var(--danger); }
+  .badge.expired { background: var(--danger); color: white; }
+
+  .empty-zone {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 14px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+  }
+
+  /* --- Global empty state --- */
+  .global-empty {
+    text-align: center;
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .global-empty .icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  .global-empty h2 {
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .global-empty p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 260px;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* --- FAB --- */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(calc(-50% + 170px));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(47,111,78,0.35);
+    font-size: 26px;
+    font-weight: 400;
+    z-index: 10;
+  }
+
+  @media (max-width: 480px) {
+    .fab { right: 24px; left: auto; transform: none; }
+  }
+
+  /* --- Toast --- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+    z-index: 20;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .toast button {
+    background: none;
+    border: none;
+    color: var(--accent-soft);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>La tua dispensa</h1>
+    <div class="summary-bar">
+      <div class="summary-pill">
+        <div class="num" id="total-count">0</div>
+        <div class="label">Prodotti totali</div>
+      </div>
+      <div class="summary-pill urgent">
+        <div class="num" id="urgent-count">0</div>
+        <div class="label">In scadenza (7gg)</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="sort-tabs">
+    <div class="sort-tab active" data-mode="zone">Per zona</div>
+    <div class="sort-tab" data-mode="expiry">Per scadenza</div>
+  </div>
+
+  <main id="main-content"></main>
+
+  <a href="aggiungi-prodotto.html" class="fab" aria-label="Aggiungi prodotto">+</a>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-text"></span>
+  <button id="undo-btn">Annulla</button>
+</div>
+
+<script>
+(function () {
+  const mainContent = document.getElementById('main-content');
+  const totalCountEl = document.getElementById('total-count');
+  const urgentCountEl = document.getElementById('urgent-count');
+  const sortTabs = document.querySelectorAll('.sort-tab');
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toast-text');
+  const undoBtn = document.getElementById('undo-btn');
+
+  const ZONES = [
+    { key: 'frigo', label: 'Frigo', icon: '❄️' },
+    { key: 'freezer', label: 'Freezer', icon: '🧊' },
+    { key: 'dispensa', label: 'Dispensa', icon: '🥫' },
+    { key: 'cantina', label: 'Cantina', icon: '🍷' }
+  ];
+
+  let sortMode = 'zone';
+  let lastRemoved = null;
+  let undoTimer = null;
+
+  async function loadProducts() {
+    try {
+      const result = await window.storage.get('dispensa-prodotti', false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveProducts(products) {
+    try {
+      await window.storage.set('dispensa-prodotti', JSON.stringify(products), false);
+    } catch (e) {
+      console.error('Errore salvataggio', e);
+    }
+  }
+
+  function daysUntil(iso) {
+    const target = new Date(iso);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return Math.round((target - now) / (1000 * 60 * 60 * 24));
+  }
+
+  function badgeInfo(days) {
+    if (days < 0) return { cls: 'expired', text: 'Scaduto' };
+    if (days === 0) return { cls: 'urgent', text: 'Oggi' };
+    if (days === 1) return { cls: 'urgent', text: 'Domani' };
+    if (days <= 3) return { cls: 'urgent', text: `${days} giorni` };
+    if (days <= 7) return { cls: 'warning', text: `${days} giorni` };
+    return { cls: 'ok', text: `${days} giorni` };
+  }
+
+  function formatDateIt(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function productRowHTML(p) {
+    const days = daysUntil(p.expiryDate);
+    const badge = badgeInfo(days);
+    const qtyText = p.quantity > 1 ? ` · x${p.quantity}` : '';
+    return `
+      <div class="product-row" data-id="${p.id}">
+        <button class="check-btn" aria-label="Segna come consumato">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
+        <div class="product-info">
+          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="meta">${formatDateIt(p.expiryDate)}${qtyText}</div>
+        </div>
+        <div class="badge ${badge.cls}">${badge.text}</div>
+      </div>
+    `;
+  }
+
+  async function render() {
+    const products = await loadProducts();
+
+    totalCountEl.textContent = products.length;
+    urgentCountEl.textContent = products.filter(p => daysUntil(p.expiryDate) <= 7).length;
+
+    if (products.length === 0) {
+      mainContent.innerHTML = `
+        <div class="global-empty">
+          <div class="icon">🥗</div>
+          <h2>La dispensa è vuota</h2>
+          <p>Aggiungi il tuo primo prodotto con il pulsante + qui sotto, così iniziamo a tenerlo d'occhio</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (sortMode === 'expiry') {
+      const sorted = [...products].sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+      mainContent.innerHTML = `
+        <div class="zone-section">
+          <div class="zone-header">
+            <div class="zone-icon">📅</div>
+            <h2>Tutti i prodotti</h2>
+            <span class="zone-count">${sorted.length}</span>
+          </div>
+          ${sorted.map(productRowHTML).join('')}
+        </div>
+      `;
+    } else {
+      let html = '';
+      ZONES.forEach(zone => {
+        const items = products
+          .filter(p => p.location === zone.key)
+          .sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+
+        if (items.length === 0) return;
+
+        html += `
+          <div class="zone-section">
+            <div class="zone-header">
+              <div class="zone-icon">${zone.icon}</div>
+              <h2>${zone.label}</h2>
+              <span class="zone-count">${items.length}</span>
+            </div>
+            ${items.map(productRowHTML).join('')}
+          </div>
+        `;
+      });
+      mainContent.innerHTML = html || `
+        <div class="global-empty">
+          <div class="icon">🥗</div>
+          <h2>La dispensa è vuota</h2>
+          <p>Aggiungi il tuo primo prodotto con il pulsante + qui sotto</p>
+        </div>
+      `;
+    }
+
+    attachCheckHandlers();
+  }
+
+  function attachCheckHandlers() {
+    document.querySelectorAll('.check-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('.product-row');
+        const id = row.dataset.id;
+        const products = await loadProducts();
+        const idx = products.findIndex(p => p.id === id);
+        if (idx === -1) return;
+
+        lastRemoved = products[idx];
+        products.splice(idx, 1);
+        await saveProducts(products);
+        showUndoToast(lastRemoved.name);
+        render();
+      });
+    });
+  }
+
+  function showUndoToast(name) {
+    clearTimeout(undoTimer);
+    toastText.textContent = `${name} segnato come consumato`;
+    toast.classList.add('show');
+    undoTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      lastRemoved = null;
+    }, 4000);
+  }
+
+  undoBtn.addEventListener('click', async () => {
+    if (!lastRemoved) return;
+    const products = await loadProducts();
+    products.push(lastRemoved);
+    await saveProducts(products);
+    lastRemoved = null;
+    clearTimeout(undoTimer);
+    toast.classList.remove('show');
+    render();
+  });
+
+  sortTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      sortTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      sortMode = tab.dataset.mode;
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

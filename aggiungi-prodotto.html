@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Aggiungi prodotto</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header h1 {
+    font-size: 19px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* --- Capture zone --- */
+  .capture-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .capture-empty {
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .capture-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .capture-icon svg { width: 26px; height: 26px; stroke: var(--accent); }
+
+  .capture-empty h2 {
+    font-size: 15px;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .capture-empty p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 280px;
+    line-height: 1.4;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+    width: 100%;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--accent-soft); color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--text-muted); }
+
+  #camera-input { display: none; }
+
+  .preview-wrap {
+    position: relative;
+  }
+
+  .preview-wrap img {
+    width: 100%;
+    display: block;
+    max-height: 280px;
+    object-fit: cover;
+  }
+
+  .retake-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(28,28,26,0.65);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+
+  /* --- OCR status --- */
+  .ocr-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  .spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .date-suggestions {
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .date-suggestions p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .date-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .date-chip {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .date-chip.selected {
+    background: var(--accent);
+    color: white;
+  }
+
+  .date-chip.none-found {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+  }
+
+  /* --- Form --- */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+  }
+
+  .field input,
+  .field select {
+    width: 100%;
+    padding: 12px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 15px;
+    color: var(--text);
+    font-family: inherit;
+  }
+
+  .field input:focus,
+  .field select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    background: var(--surface);
+  }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .location-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .location-pill {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 10px 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .location-pill.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  /* --- Toast --- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* --- Recent list --- */
+  .recent-section h3 {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin: 0 0 10px;
+  }
+
+  .recent-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .recent-item .name { font-weight: 600; }
+  .recent-item .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .recent-item .badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .empty-recent {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 16px 0;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    display: flex;
+    gap: 8px;
+    padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Aggiungi prodotto</h1>
+    <p>Scatta una foto della confezione: leggo la data da solo</p>
+  </header>
+
+  <main>
+    <div class="capture-card">
+      <div id="capture-empty-state" class="capture-empty">
+        <div class="capture-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+        </div>
+        <h2>Nessuna foto ancora</h2>
+        <p>Inquadra l'etichetta o la data stampata sulla confezione, meglio se a fuoco e ben illuminata</p>
+        <label for="camera-input" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
+          Scatta foto
+        </label>
+      </div>
+
+      <div id="preview-state" style="display:none;">
+        <div class="preview-wrap">
+          <img id="preview-img" src="" alt="Anteprima prodotto">
+          <button class="retake-btn" id="retake-btn">Rifai foto</button>
+        </div>
+        <div id="ocr-status" class="ocr-status" style="display:none;">
+          <div class="spinner"></div>
+          <span id="ocr-status-text">Leggo l'etichetta...</span>
+        </div>
+        <div id="date-suggestions" class="date-suggestions" style="display:none;">
+          <p>Data trovata nella foto</p>
+          <div id="date-chip-row" class="date-chip-row"></div>
+        </div>
+      </div>
+
+      <input type="file" id="camera-input" accept="image/*" capture="environment">
+    </div>
+
+    <div class="form-card">
+      <div class="field">
+        <label for="product-name">Nome prodotto</label>
+        <input type="text" id="product-name" placeholder="Es. Yogurt bianco">
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="product-category">Categoria</label>
+          <select id="product-category">
+            <option value="latticini">Latticini</option>
+            <option value="uova">Uova</option>
+            <option value="carne">Carne</option>
+            <option value="pesce">Pesce</option>
+            <option value="verdura">Verdura</option>
+            <option value="frutta">Frutta</option>
+            <option value="conserve">Conserve</option>
+            <option value="surgelati">Surgelati</option>
+            <option value="altro" selected>Altro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="product-qty">Quantità</label>
+          <input type="number" id="product-qty" value="1" min="1">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="product-date">Data di scadenza</label>
+        <input type="date" id="product-date">
+      </div>
+
+      <div class="field">
+        <label>Dove si trova</label>
+        <div class="location-row" id="location-row">
+          <div class="location-pill selected" data-location="frigo">Frigo</div>
+          <div class="location-pill" data-location="dispensa">Dispensa</div>
+          <div class="location-pill" data-location="freezer">Freezer</div>
+          <div class="location-pill" data-location="cantina">Cantina</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="save-btn">Aggiungi alla dispensa</button>
+      <div class="hint">💡 Dopo il salvataggio il modulo si svuota, così puoi fotografare subito il prodotto successivo</div>
+    </div>
+
+    <div class="recent-section">
+      <h3>Aggiunti di recente</h3>
+      <div id="recent-list"></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const cameraInput = document.getElementById('camera-input');
+  const captureEmptyState = document.getElementById('capture-empty-state');
+  const previewState = document.getElementById('preview-state');
+  const previewImg = document.getElementById('preview-img');
+  const retakeBtn = document.getElementById('retake-btn');
+  const ocrStatus = document.getElementById('ocr-status');
+  const ocrStatusText = document.getElementById('ocr-status-text');
+  const dateSuggestions = document.getElementById('date-suggestions');
+  const dateChipRow = document.getElementById('date-chip-row');
+  const productDateInput = document.getElementById('product-date');
+  const productNameInput = document.getElementById('product-name');
+  const productCategoryInput = document.getElementById('product-category');
+  const productQtyInput = document.getElementById('product-qty');
+  const locationRow = document.getElementById('location-row');
+  const saveBtn = document.getElementById('save-btn');
+  const toast = document.getElementById('toast');
+  const recentList = document.getElementById('recent-list');
+
+  let selectedLocation = 'frigo';
+
+  // --- Location pills ---
+  locationRow.addEventListener('click', (e) => {
+    const pill = e.target.closest('.location-pill');
+    if (!pill) return;
+    document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    selectedLocation = pill.dataset.location;
+  });
+
+  // --- Toast helper ---
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // --- Photo capture ---
+  cameraInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      previewImg.src = evt.target.result;
+      captureEmptyState.style.display = 'none';
+      previewState.style.display = 'block';
+      dateSuggestions.style.display = 'none';
+      runOCR(evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  retakeBtn.addEventListener('click', () => {
+    cameraInput.value = '';
+    captureEmptyState.style.display = 'flex';
+    previewState.style.display = 'none';
+    dateSuggestions.style.display = 'none';
+    ocrStatus.style.display = 'none';
+  });
+
+  // --- OCR ---
+  function runOCR(imageDataUrl) {
+    ocrStatus.style.display = 'flex';
+    ocrStatusText.textContent = 'Leggo l\'etichetta...';
+
+    Tesseract.recognize(imageDataUrl, 'eng', {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round(m.progress * 100);
+          ocrStatusText.textContent = `Leggo l'etichetta... ${pct}%`;
+        }
+      }
+    }).then(({ data: { text } }) => {
+      ocrStatus.style.display = 'none';
+      const dates = extractDates(text);
+      showDateSuggestions(dates);
+    }).catch((err) => {
+      console.error('OCR error', err);
+      ocrStatus.style.display = 'none';
+      showDateSuggestions([]);
+    });
+  }
+
+  // --- Date extraction ---
+  function extractDates(rawText) {
+    const found = [];
+    const patterns = [
+      // dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy
+      { regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/g, type: 'dmy' },
+      // dd/mm/yy
+      { regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})\b/g, type: 'dmy2' },
+      // mm/yyyy (solo mese/anno)
+      { regex: /\b(\d{1,2})[\/\-.](\d{4})\b/g, type: 'my' },
+      // yyyy-mm-dd
+      { regex: /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/g, type: 'ymd' }
+    ];
+
+    patterns.forEach(({ regex, type }) => {
+      let match;
+      while ((match = regex.exec(rawText)) !== null) {
+        let iso = null;
+        if (type === 'dmy') {
+          const [, d, m, y] = match;
+          iso = toISO(y, m, d);
+        } else if (type === 'dmy2') {
+          const [, d, m, y] = match;
+          iso = toISO('20' + y, m, d);
+        } else if (type === 'my') {
+          const [, m, y] = match;
+          iso = toISO(y, m, '01');
+        } else if (type === 'ymd') {
+          const [, y, m, d] = match;
+          iso = toISO(y, m, d);
+        }
+        if (iso && isPlausibleDate(iso)) {
+          found.push(iso);
+        }
+      }
+    });
+
+    // dedup, mantieni ordine
+    return [...new Set(found)];
+  }
+
+  function toISO(y, m, d) {
+    const yy = parseInt(y, 10);
+    const mm = parseInt(m, 10);
+    const dd = parseInt(d, 10);
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+    return `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  }
+
+  function isPlausibleDate(iso) {
+    // scarta date troppo nel passato o troppo nel futuro (probabile lotto/errore OCR)
+    const date = new Date(iso);
+    const now = new Date();
+    const minDate = new Date(now.getFullYear() - 1, 0, 1);
+    const maxDate = new Date(now.getFullYear() + 6, 0, 1);
+    return date >= minDate && date <= maxDate;
+  }
+
+  function showDateSuggestions(dates) {
+    dateSuggestions.style.display = 'block';
+    dateChipRow.innerHTML = '';
+
+    if (dates.length === 0) {
+      const chip = document.createElement('div');
+      chip.className = 'date-chip none-found';
+      chip.textContent = 'Nessuna data trovata, inseriscila sotto ↓';
+      dateChipRow.appendChild(chip);
+      return;
+    }
+
+    dates.forEach((iso, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'date-chip';
+      chip.textContent = formatDateIt(iso);
+      chip.dataset.iso = iso;
+      if (idx === 0) {
+        chip.classList.add('selected');
+        productDateInput.value = iso;
+      }
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        productDateInput.value = iso;
+      });
+      dateChipRow.appendChild(chip);
+    });
+  }
+
+  function formatDateIt(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  // --- Storage (persistent, personal) ---
+  async function loadProducts() {
+    try {
+      const result = await window.storage.get('dispensa-prodotti', false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveProducts(products) {
+    try {
+      await window.storage.set('dispensa-prodotti', JSON.stringify(products), false);
+    } catch (e) {
+      console.error('Errore salvataggio', e);
+    }
+  }
+
+  async function renderRecent() {
+    const products = await loadProducts();
+    recentList.innerHTML = '';
+    if (products.length === 0) {
+      recentList.innerHTML = '<div class="empty-recent">Non hai ancora aggiunto nessun prodotto</div>';
+      return;
+    }
+    products.slice(-5).reverse().forEach((p) => {
+      const item = document.createElement('div');
+      item.className = 'recent-item';
+      const daysLeft = daysUntil(p.expiryDate);
+      item.innerHTML = `
+        <div>
+          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="meta">${capitalize(p.location)} · ${formatDateIt(p.expiryDate)}</div>
+        </div>
+        <div class="badge">${daysLeft}</div>
+      `;
+      recentList.appendChild(item);
+    });
+  }
+
+  function daysUntil(iso) {
+    const target = new Date(iso);
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    const diff = Math.round((target - now) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return 'Scaduto';
+    if (diff === 0) return 'Oggi';
+    if (diff === 1) return 'Domani';
+    return `${diff} giorni`;
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // --- Save product ---
+  saveBtn.addEventListener('click', async () => {
+    const name = productNameInput.value.trim();
+    const date = productDateInput.value;
+
+    if (!name) {
+      showToast('Inserisci il nome del prodotto');
+      productNameInput.focus();
+      return;
+    }
+    if (!date) {
+      showToast('Inserisci la data di scadenza');
+      productDateInput.focus();
+      return;
+    }
+
+    const product = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name,
+      category: productCategoryInput.value,
+      quantity: parseInt(productQtyInput.value, 10) || 1,
+      expiryDate: date,
+      location: selectedLocation,
+      addedAt: new Date().toISOString()
+    };
+
+    saveBtn.disabled = true;
+    const products = await loadProducts();
+    products.push(product);
+    await saveProducts(products);
+    saveBtn.disabled = false;
+
+    showToast(`${name} aggiunto alla dispensa`);
+    resetForm();
+    renderRecent();
+  });
+
+  function resetForm() {
+    cameraInput.value = '';
+    captureEmptyState.style.display = 'flex';
+    previewState.style.display = 'none';
+    dateSuggestions.style.display = 'none';
+    ocrStatus.style.display = 'none';
+    productNameInput.value = '';
+    productCategoryInput.value = 'altro';
+    productQtyInput.value = '1';
+    productDateInput.value = '';
+    document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));
+    document.querySelector('.location-pill[data-location="frigo"]').classList.add('selected');
+    selectedLocation = 'frigo';
+  }
+
+  // --- Init ---
+  renderRecent();
+})();
+</script>
+</body>
+</html>
