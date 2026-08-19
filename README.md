@@ -11,7 +11,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] `index.html` — Home page: benvenuto, tutorial in 3 step, messaggio anti-spreco con contatore prodotti salvati
 - [x] `aggiungi-prodotto.html` — Scatta foto → OCR automatico della data → conferma
 - [x] `lista-dispensa.html` — Lista prodotti raggruppata per zona (Frigo/Freezer/Dispensa/Cantina), ordinata per urgenza
-- [ ] Lista della spesa — **da fare, dopo**
+- [x] Lista della spesa (`lista-spesa.html`) — aggiungi articoli, spunta quando comprati, svuota il carrello
 
 ## Stack tecnico
 

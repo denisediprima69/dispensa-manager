@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lista della spesa</title>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header a {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  header h1 {
+    font-size: 19px;
+    margin-top: 6px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  main {
+    flex: 1;
+    padding: 18px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* --- Add item bar --- */
+  .add-bar {
+    display: flex;
+    gap: 8px;
+  }
+
+  .add-bar input {
+    flex: 1;
+    padding: 13px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .add-bar input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+  }
+
+  .add-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    font-size: 22px;
+    font-weight: 400;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-btn:active { transform: scale(0.96); }
+
+  /* --- List --- */
+  .list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+
+  .list-header h2 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  .clear-btn {
+    font-size: 12px;
+    color: var(--danger);
+    background: none;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .item-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .item-check {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 7px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+  }
+
+  .item-check svg {
+    width: 13px;
+    height: 13px;
+    stroke: white;
+    stroke-width: 3;
+  }
+
+  .item-row.checked .item-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .item-name {
+    flex: 1;
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+
+  .item-row.checked .item-name {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .item-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .item-delete svg { width: 17px; height: 17px; stroke: currentColor; }
+
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .empty-state .icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .empty-state h2 {
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .empty-state p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 240px;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .empty-checked {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 6px 0;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="index.html">← Home</a>
+    <h1>Lista della spesa</h1>
+    <p>Aggiungi ciò che ti serve, spunta man mano che lo metti nel carrello</p>
+  </header>
+
+  <main>
+    <div class="add-bar">
+      <input type="text" id="new-item-input" placeholder="Es. Latte, pane, pomodori...">
+      <button class="add-btn" id="add-item-btn" aria-label="Aggiungi articolo">+</button>
+    </div>
+
+    <div id="list-content"></div>
+  </main>
+</div>
+
+<script>
+(function () {
+  const input = document.getElementById('new-item-input');
+  const addBtn = document.getElementById('add-item-btn');
+  const listContent = document.getElementById('list-content');
+
+  const STORAGE_KEY = 'lista-spesa';
+
+  async function loadItems() {
+    try {
+      const result = await window.storage.get(STORAGE_KEY, false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveItems(items) {
+    try {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(items), false);
+    } catch (e) {
+      console.error('Errore salvataggio', e);
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function render() {
+    const items = await loadItems();
+
+    if (items.length === 0) {
+      listContent.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🛒</div>
+          <h2>La lista è vuota</h2>
+          <p>Aggiungi qui sopra i prodotti che ti servono per la prossima spesa</p>
+        </div>
+      `;
+      return;
+    }
+
+    const toBuy = items.filter(i => !i.checked);
+    const bought = items.filter(i => i.checked);
+
+    let html = '';
+
+    if (toBuy.length > 0) {
+      html += `
+        <div class="list-section">
+          <div class="list-header"><h2>Da comprare · ${toBuy.length}</h2></div>
+          ${toBuy.map(itemRowHTML).join('')}
+        </div>
+      `;
+    }
+
+    if (bought.length > 0) {
+      html += `
+        <div class="list-section">
+          <div class="list-header">
+            <h2>Nel carrello · ${bought.length}</h2>
+            <button class="clear-btn" id="clear-checked-btn">Svuota</button>
+          </div>
+          ${bought.map(itemRowHTML).join('')}
+        </div>
+      `;
+    }
+
+    listContent.innerHTML = html;
+    attachHandlers();
+  }
+
+  function itemRowHTML(item) {
+    return `
+      <div class="item-row ${item.checked ? 'checked' : ''}" data-id="${item.id}">
+        <button class="item-check" aria-label="Segna come comprato">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
+        <div class="item-name">${escapeHtml(item.name)}</div>
+        <button class="item-delete" aria-label="Rimuovi">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    `;
+  }
+
+  function attachHandlers() {
+    document.querySelectorAll('.item-check').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.item-row').dataset.id;
+        const items = await loadItems();
+        const item = items.find(i => i.id === id);
+        if (item) item.checked = !item.checked;
+        await saveItems(items);
+        render();
+      });
+    });
+
+    document.querySelectorAll('.item-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.item-row').dataset.id;
+        const items = await loadItems();
+        const filtered = items.filter(i => i.id !== id);
+        await saveItems(filtered);
+        render();
+      });
+    });
+
+    const clearBtn = document.getElementById('clear-checked-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', async () => {
+        const items = await loadItems();
+        const filtered = items.filter(i => !i.checked);
+        await saveItems(filtered);
+        render();
+      });
+    }
+  }
+
+  async function addItem() {
+    const name = input.value.trim();
+    if (!name) return;
+
+    const items = await loadItems();
+    items.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name,
+      checked: false,
+      addedAt: new Date().toISOString()
+    });
+    await saveItems(items);
+    input.value = '';
+    input.focus();
+    render();
+  }
+
+  addBtn.addEventListener('click', addItem);
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addItem();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
