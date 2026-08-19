@@ -319,6 +319,34 @@
     background: var(--surface);
   }
 
+  .new-category-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .new-category-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .new-category-save-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   .row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -504,7 +532,12 @@
             <option value="conserve">Conserve</option>
             <option value="surgelati">Surgelati</option>
             <option value="altro" selected>Altro</option>
+            <option value="__new__">+ Nuova categoria...</option>
           </select>
+          <div id="new-category-row" class="new-category-row" style="display:none;">
+            <input type="text" id="new-category-input" placeholder="Nome categoria">
+            <button type="button" id="new-category-save" class="new-category-save-btn">Salva</button>
+          </div>
         </div>
         <div class="field">
           <label for="product-qty">Quantità</label>
@@ -562,6 +595,9 @@
   const productDateInput = document.getElementById('product-date');
   const productNameInput = document.getElementById('product-name');
   const productCategoryInput = document.getElementById('product-category');
+  const newCategoryRow = document.getElementById('new-category-row');
+  const newCategoryInput = document.getElementById('new-category-input');
+  const newCategorySaveBtn = document.getElementById('new-category-save');
   const productQtyInput = document.getElementById('product-qty');
   const locationRow = document.getElementById('location-row');
   const saveBtn = document.getElementById('save-btn');
@@ -751,6 +787,84 @@
     return `${d}/${m}/${y}`;
   }
 
+  // --- Categorie personalizzate ---
+  const CATEGORIES_KEY = 'categorie-personalizzate';
+
+  async function loadCustomCategories() {
+    try {
+      const result = await window.storage.get(CATEGORIES_KEY, false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveCustomCategories(categories) {
+    try {
+      await window.storage.set(CATEGORIES_KEY, JSON.stringify(categories), false);
+    } catch (e) {
+      console.error('Errore salvataggio categorie', e);
+    }
+  }
+
+  async function populateCustomCategories() {
+    const custom = await loadCustomCategories();
+    const newOption = productCategoryInput.querySelector('option[value="__new__"]');
+    custom.forEach((cat) => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+      productCategoryInput.insertBefore(opt, newOption);
+    });
+  }
+
+  productCategoryInput.addEventListener('change', () => {
+    if (productCategoryInput.value === '__new__') {
+      newCategoryRow.style.display = 'flex';
+      newCategoryInput.focus();
+    } else {
+      newCategoryRow.style.display = 'none';
+    }
+  });
+
+  async function saveNewCategory() {
+    const name = newCategoryInput.value.trim();
+    if (!name) {
+      newCategoryInput.focus();
+      return;
+    }
+
+    const custom = await loadCustomCategories();
+    const exists = custom.some(c => c.toLowerCase() === name.toLowerCase()) ||
+      ['latticini', 'uova', 'carne', 'pesce', 'verdura', 'frutta', 'conserve', 'surgelati', 'altro']
+        .includes(name.toLowerCase());
+
+    if (!exists) {
+      custom.push(name.toLowerCase());
+      await saveCustomCategories(custom);
+
+      const newOption = productCategoryInput.querySelector('option[value="__new__"]');
+      const opt = document.createElement('option');
+      opt.value = name.toLowerCase();
+      opt.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      productCategoryInput.insertBefore(opt, newOption);
+    }
+
+    productCategoryInput.value = name.toLowerCase();
+    newCategoryRow.style.display = 'none';
+    newCategoryInput.value = '';
+  }
+
+  newCategorySaveBtn.addEventListener('click', saveNewCategory);
+  newCategoryInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveNewCategory();
+    }
+  });
+
+  populateCustomCategories();
+
   // --- Storage (persistent, personal) ---
   async function loadProducts() {
     try {
@@ -857,6 +971,7 @@
     ocrStatus.style.display = 'none';
     productNameInput.value = '';
     productCategoryInput.value = 'altro';
+    newCategoryRow.style.display = 'none';
     productQtyInput.value = '1';
     productDateInput.value = '';
     document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));

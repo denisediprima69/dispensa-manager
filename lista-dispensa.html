@@ -381,6 +381,34 @@
     font-family: inherit;
   }
 
+  .new-category-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .new-category-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .new-category-save-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   .modal-row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -492,7 +520,12 @@
           <option value="conserve">Conserve</option>
           <option value="surgelati">Surgelati</option>
           <option value="altro">Altro</option>
+          <option value="__new__">+ Nuova categoria...</option>
         </select>
+        <div id="edit-new-category-row" class="new-category-row" style="display:none;">
+          <input type="text" id="edit-new-category-input" placeholder="Nome categoria">
+          <button type="button" id="edit-new-category-save" class="new-category-save-btn">Salva</button>
+        </div>
       </div>
       <div class="modal-field">
         <label for="edit-qty">Quantità</label>
@@ -540,6 +573,9 @@
   const modalDeleteBtn = document.getElementById('modal-delete-btn');
   const editName = document.getElementById('edit-name');
   const editCategory = document.getElementById('edit-category');
+  const editNewCategoryRow = document.getElementById('edit-new-category-row');
+  const editNewCategoryInput = document.getElementById('edit-new-category-input');
+  const editNewCategorySave = document.getElementById('edit-new-category-save');
   const editQty = document.getElementById('edit-qty');
   const editDate = document.getElementById('edit-date');
   const editLocation = document.getElementById('edit-location');
@@ -555,6 +591,85 @@
   let sortMode = 'zone';
   let lastRemoved = null;
   let undoTimer = null;
+
+  // --- Categorie personalizzate (condivise con aggiungi-prodotto.html) ---
+  const CATEGORIES_KEY = 'categorie-personalizzate';
+  const DEFAULT_CATEGORIES = ['latticini', 'uova', 'carne', 'pesce', 'verdura', 'frutta', 'conserve', 'surgelati', 'altro'];
+
+  async function loadCustomCategories() {
+    try {
+      const result = await window.storage.get(CATEGORIES_KEY, false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveCustomCategories(categories) {
+    try {
+      await window.storage.set(CATEGORIES_KEY, JSON.stringify(categories), false);
+    } catch (e) {
+      console.error('Errore salvataggio categorie', e);
+    }
+  }
+
+  async function populateEditCategories() {
+    const custom = await loadCustomCategories();
+    const newOption = editCategory.querySelector('option[value="__new__"]');
+    custom.forEach((cat) => {
+      if (editCategory.querySelector(`option[value="${cat}"]`)) return;
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+      editCategory.insertBefore(opt, newOption);
+    });
+  }
+
+  editCategory.addEventListener('change', () => {
+    if (editCategory.value === '__new__') {
+      editNewCategoryRow.style.display = 'flex';
+      editNewCategoryInput.focus();
+    } else {
+      editNewCategoryRow.style.display = 'none';
+    }
+  });
+
+  async function saveEditNewCategory() {
+    const name = editNewCategoryInput.value.trim();
+    if (!name) {
+      editNewCategoryInput.focus();
+      return;
+    }
+
+    const custom = await loadCustomCategories();
+    const exists = custom.some(c => c.toLowerCase() === name.toLowerCase()) ||
+      DEFAULT_CATEGORIES.includes(name.toLowerCase());
+
+    if (!exists) {
+      custom.push(name.toLowerCase());
+      await saveCustomCategories(custom);
+
+      const newOption = editCategory.querySelector('option[value="__new__"]');
+      const opt = document.createElement('option');
+      opt.value = name.toLowerCase();
+      opt.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      editCategory.insertBefore(opt, newOption);
+    }
+
+    editCategory.value = name.toLowerCase();
+    editNewCategoryRow.style.display = 'none';
+    editNewCategoryInput.value = '';
+  }
+
+  editNewCategorySave.addEventListener('click', saveEditNewCategory);
+  editNewCategoryInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveEditNewCategory();
+    }
+  });
+
+  populateEditCategories();
 
   async function loadProducts() {
     try {
@@ -739,6 +854,7 @@
     editQty.value = product.quantity || 1;
     editDate.value = product.expiryDate;
     editLocation.value = product.location;
+    editNewCategoryRow.style.display = 'none';
     editModal.classList.add('show');
   }
 
