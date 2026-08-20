@@ -21,6 +21,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] Categorie semplificate con emoji (Latticini, Carne, Pesce, Frutta e verdura, Dispensa, Uova, Surgelati, Bevande, Altro) + categorie personalizzate create dall'utente, condivise in tutta l'app
 - [x] Quantità con consumo parziale, distinzione Consumato ✅ / Buttato 🗑️, log eventi (`dispensa-eventi`) alla base delle statistiche in home
 - [x] Modifica prodotto (nome, categoria, quantità, data, zona) con eliminazione separata dal flusso consumo/spreco
+- [x] Scansione barcode dalla stessa foto della scadenza: riconoscimento tramite ZXing + ricerca automatica nome prodotto su Open Food Facts. Banner suggerimento "inquadra barcode e scadenza insieme" disattivabile in modo permanente (riattivabile da Impostazioni)
 
 ### Ancora da fare (V1)
 

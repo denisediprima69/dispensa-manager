@@ -321,6 +321,19 @@
     </section>
 
     <section>
+      <p class="section-label">Suggerimenti in-app</p>
+      <div class="card">
+        <div class="setting-row">
+          <div>
+            <div class="label-text">Suggerimento foto</div>
+            <div class="label-sub">"Inquadra barcode e scadenza insieme" nella pagina Aggiungi prodotto</div>
+          </div>
+          <button class="toggle" id="tip-toggle"></button>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <p class="section-label">Info app</p>
       <div class="card">
         <div class="info-row">
@@ -373,6 +386,7 @@
   const newCategoryInput = document.getElementById('new-category-input');
   const addCategoryBtn = document.getElementById('add-category-btn');
   const notifToggle = document.getElementById('notif-toggle');
+  const tipToggle = document.getElementById('tip-toggle');
   const notifTime = document.getElementById('notif-time');
 
   // --- Categorie ---
@@ -489,10 +503,33 @@
     await saveNotifPrefs(prefs);
   });
 
+  // --- Suggerimento foto (stessa chiave usata in aggiungi-prodotto.html) ---
+  const TIP_DISMISSED_KEY = 'nascondi-suggerimento-foto';
+
+  async function initTipToggle() {
+    try {
+      const result = await window.storage.get(TIP_DISMISSED_KEY, false);
+      const dismissed = result ? result.value === 'true' : false;
+      tipToggle.classList.toggle('on', !dismissed);
+    } catch (e) {
+      tipToggle.classList.add('on');
+    }
+  }
+
+  tipToggle.addEventListener('click', async () => {
+    const isOn = tipToggle.classList.toggle('on');
+    try {
+      await window.storage.set(TIP_DISMISSED_KEY, isOn ? 'false' : 'true', false);
+    } catch (e) {
+      console.error('Errore salvataggio preferenza suggerimento', e);
+    }
+  });
+
   // --- Init ---
   renderDefaultCategories();
   renderCustomCategories();
   initNotifPrefs();
+  initTipToggle();
 })();
 </script>
 </body>

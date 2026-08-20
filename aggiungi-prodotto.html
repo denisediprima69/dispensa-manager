@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Lo Stipo — Aggiungi prodotto</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
 <style>
   :root {
     --bg: #F7F7F5;
@@ -70,6 +71,36 @@
   }
 
   /* --- Capture zone --- */
+  .tip-banner {
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 13px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .tip-icon { font-size: 18px; line-height: 1.4; }
+
+  .tip-text {
+    flex: 1;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--accent);
+  }
+
+  .tip-dismiss {
+    background: none;
+    border: none;
+    color: var(--accent);
+    opacity: 0.6;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+
   .capture-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -182,6 +213,15 @@
     font-size: 13px;
     color: var(--text-muted);
     border-top: 1px solid var(--border);
+  }
+
+  .barcode-status {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    color: var(--accent);
+    background: var(--accent-soft);
   }
 
   .spinner {
@@ -470,6 +510,12 @@
   </header>
 
   <main>
+    <div id="tip-banner" class="tip-banner" style="display:none;">
+      <span class="tip-icon">📸</span>
+      <span class="tip-text">Inquadra nella stessa foto sia il <strong>codice a barre</strong> che la <strong>data di scadenza</strong>: provo a leggerli entrambi in automatico</span>
+      <button id="tip-dismiss-btn" class="tip-dismiss" aria-label="Chiudi suggerimento">✕</button>
+    </div>
+
     <div class="capture-card">
       <div id="capture-empty-state" class="capture-empty">
         <div class="capture-icon">
@@ -494,6 +540,9 @@
         <div id="ocr-status" class="ocr-status" style="display:none;">
           <div class="spinner"></div>
           <span id="ocr-status-text">Leggo l'etichetta...</span>
+        </div>
+        <div id="barcode-status" class="barcode-status" style="display:none;">
+          <span id="barcode-status-text">Cerco il prodotto...</span>
         </div>
         <div id="date-confirm-panel" class="date-confirm-panel" style="display:none;">
           <div id="date-found-view">
@@ -595,6 +644,10 @@
   const retakeBtn = document.getElementById('retake-btn');
   const ocrStatus = document.getElementById('ocr-status');
   const ocrStatusText = document.getElementById('ocr-status-text');
+  const barcodeStatus = document.getElementById('barcode-status');
+  const barcodeStatusText = document.getElementById('barcode-status-text');
+  const tipBanner = document.getElementById('tip-banner');
+  const tipDismissBtn = document.getElementById('tip-dismiss-btn');
   const dateConfirmPanel = document.getElementById('date-confirm-panel');
   const dateFoundView = document.getElementById('date-found-view');
   const dateNotfoundView = document.getElementById('date-notfound-view');
@@ -650,8 +703,10 @@
       previewImg.src = evt.target.result;
       captureEmptyState.style.display = 'none';
       previewState.style.display = 'block';
-      dateSuggestions.style.display = 'none';
+      dateConfirmPanel.style.display = 'none';
+      barcodeStatus.style.display = 'none';
       runOCR(evt.target.result);
+      runBarcodeDetection(evt.target.result);
     };
     reader.readAsDataURL(file);
   });
@@ -662,7 +717,49 @@
     previewState.style.display = 'none';
     dateConfirmPanel.style.display = 'none';
     ocrStatus.style.display = 'none';
+    barcodeStatus.style.display = 'none';
   });
+
+  // --- Barcode + Open Food Facts ---
+  function runBarcodeDetection(imageDataUrl) {
+    if (typeof ZXing === 'undefined') return;
+
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    codeReader.decodeFromImageUrl(imageDataUrl)
+      .then((result) => {
+        const barcode = result.getText();
+        lookupOpenFoodFacts(barcode);
+      })
+      .catch(() => {
+        // Nessun barcode leggibile nella foto: nessun problema, si continua solo con la data
+      });
+  }
+
+  function lookupOpenFoodFacts(barcode) {
+    barcodeStatus.style.display = 'flex';
+    barcodeStatusText.textContent = 'Codice a barre trovato, cerco il prodotto...';
+
+    fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 1 && data.product) {
+          const name = data.product.product_name_it || data.product.product_name || '';
+          if (name && !productNameInput.value.trim()) {
+            productNameInput.value = name;
+          }
+          barcodeStatusText.textContent = name
+            ? `📦 Riconosciuto dal barcode: ${name}`
+            : '📦 Barcode letto, ma prodotto non trovato nel database';
+        } else {
+          barcodeStatusText.textContent = '📦 Barcode letto, ma prodotto non trovato nel database';
+        }
+        setTimeout(() => { barcodeStatus.style.display = 'none'; }, 4000);
+      })
+      .catch(() => {
+        barcodeStatusText.textContent = '📦 Barcode letto, ma la ricerca del prodotto non è riuscita';
+        setTimeout(() => { barcodeStatus.style.display = 'none'; }, 4000);
+      });
+  }
 
   // --- OCR ---
   function runOCR(imageDataUrl) {
@@ -998,6 +1095,31 @@
   }
 
   // --- Init ---
+  const TIP_DISMISSED_KEY = 'nascondi-suggerimento-foto';
+
+  async function initTipBanner() {
+    try {
+      const result = await window.storage.get(TIP_DISMISSED_KEY, false);
+      const dismissed = result ? result.value === 'true' : false;
+      if (!dismissed) {
+        tipBanner.style.display = 'flex';
+      }
+    } catch (e) {
+      tipBanner.style.display = 'flex';
+    }
+  }
+
+  tipDismissBtn.addEventListener('click', async () => {
+    tipBanner.style.display = 'none';
+    try {
+      await window.storage.set(TIP_DISMISSED_KEY, 'true', false);
+    } catch (e) {
+      console.error('Errore salvataggio preferenza', e);
+    }
+  });
+
+  initTipBanner();
+
   const urlParams = new URLSearchParams(window.location.search);
   const prefilledName = urlParams.get('nome');
   if (prefilledName) {
