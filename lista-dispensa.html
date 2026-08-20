@@ -433,6 +433,65 @@
 
   .modal-btn-save { background: var(--accent); color: white; }
   .modal-btn-delete { background: var(--danger-soft); color: var(--danger); }
+
+  .consume-qty-row { margin-bottom: 18px; text-align: center; }
+
+  .consume-qty-label {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+
+  .qty-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .qty-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .qty-value {
+    font-size: 20px;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .consume-question {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    margin: 0 0 14px;
+  }
+
+  .consume-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .consume-action-btn {
+    flex: 1;
+    padding: 15px 10px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .consume-saved { background: var(--accent-soft); color: var(--accent); }
+  .consume-wasted { background: var(--danger-soft); color: var(--danger); }
   .toast {
     position: fixed;
     bottom: 24px;
@@ -497,6 +556,32 @@
   <a href="aggiungi-prodotto.html" class="fab" aria-label="Aggiungi prodotto">+</a>
 </div>
 
+<div class="modal-overlay" id="consume-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3 id="consume-product-name">Prodotto</h3>
+      <button class="modal-close" id="consume-close-btn">✕</button>
+    </div>
+    <div id="consume-qty-row" class="consume-qty-row" style="display:none;">
+      <p class="consume-qty-label">Quante unità?</p>
+      <div class="qty-stepper">
+        <button class="qty-btn" id="qty-minus">−</button>
+        <span class="qty-value" id="qty-value">1</span>
+        <button class="qty-btn" id="qty-plus">+</button>
+      </div>
+    </div>
+    <p class="consume-question">Come vuoi segnarlo?</p>
+    <div class="consume-actions">
+      <button class="consume-action-btn consume-saved" id="mark-consumed-btn">
+        ✅ Consumato
+      </button>
+      <button class="consume-action-btn consume-wasted" id="mark-wasted-btn">
+        🗑️ Buttato
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="edit-modal">
   <div class="modal-sheet">
     <div class="modal-header">
@@ -552,7 +637,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">
   <span id="toast-text"></span>
   <button id="undo-btn">Annulla</button>
 </div>
@@ -589,8 +674,20 @@
   ];
 
   let sortMode = 'zone';
-  let lastRemoved = null;
+  let lastSnapshot = null;
   let undoTimer = null;
+
+  const consumeModal = document.getElementById('consume-modal');
+  const consumeProductName = document.getElementById('consume-product-name');
+  const consumeCloseBtn = document.getElementById('consume-close-btn');
+  const consumeQtyRow = document.getElementById('consume-qty-row');
+  const qtyMinus = document.getElementById('qty-minus');
+  const qtyPlus = document.getElementById('qty-plus');
+  const qtyValue = document.getElementById('qty-value');
+  const markConsumedBtn = document.getElementById('mark-consumed-btn');
+  const markWastedBtn = document.getElementById('mark-wasted-btn');
+  let consumingProduct = null;
+  let consumeQty = 1;
 
   // --- Categorie personalizzate (condivise con aggiungi-prodotto.html) ---
   const CATEGORIES_KEY = 'categorie-personalizzate';
@@ -688,24 +785,36 @@
     }
   }
 
-  async function incrementConsumedCount() {
+  // --- Log eventi (consumato/buttato) — base per le statistiche in home ---
+  const EVENTS_KEY = 'dispensa-eventi';
+
+  async function loadEvents() {
     try {
-      const result = await window.storage.get('dispensa-consumati-count', false);
-      const current = result ? parseInt(result.value, 10) || 0 : 0;
-      await window.storage.set('dispensa-consumati-count', String(current + 1), false);
+      const result = await window.storage.get(EVENTS_KEY, false);
+      return result ? JSON.parse(result.value) : [];
     } catch (e) {
-      console.error('Errore aggiornamento contatore', e);
+      return [];
     }
   }
 
-  async function decrementConsumedCount() {
+  async function saveEvents(events) {
     try {
-      const result = await window.storage.get('dispensa-consumati-count', false);
-      const current = result ? parseInt(result.value, 10) || 0 : 0;
-      await window.storage.set('dispensa-consumati-count', String(Math.max(0, current - 1)), false);
+      await window.storage.set(EVENTS_KEY, JSON.stringify(events), false);
     } catch (e) {
-      console.error('Errore aggiornamento contatore', e);
+      console.error('Errore salvataggio eventi', e);
     }
+  }
+
+  async function logEvent(type, qty, productName) {
+    const events = await loadEvents();
+    events.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      type, // 'consumato' | 'buttato'
+      qty,
+      productName,
+      date: new Date().toISOString()
+    });
+    await saveEvents(events);
   }
 
   function daysUntil(iso) {
@@ -742,10 +851,10 @@
   function productRowHTML(p) {
     const days = daysUntil(p.expiryDate);
     const badge = badgeInfo(days);
-    const qtyText = p.quantity > 1 ? ` · x${p.quantity}` : '';
+    const qtyText = p.quantity > 1 ? ` · ${p.quantity} pezzi` : '';
     return `
       <div class="product-row" data-id="${p.id}">
-        <button class="check-btn" aria-label="Segna come consumato">
+        <button class="check-btn" aria-label="Segna come consumato o buttato">
           <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </button>
         <div class="product-info" data-id="${p.id}">
@@ -824,15 +933,9 @@
         const row = btn.closest('.product-row');
         const id = row.dataset.id;
         const products = await loadProducts();
-        const idx = products.findIndex(p => p.id === id);
-        if (idx === -1) return;
-
-        lastRemoved = products[idx];
-        products.splice(idx, 1);
-        await saveProducts(products);
-        await incrementConsumedCount();
-        showUndoToast(lastRemoved.name);
-        render();
+        const product = products.find(p => p.id === id);
+        if (!product) return;
+        openConsumeModal(product);
       });
     });
 
@@ -847,6 +950,83 @@
     });
   }
 
+  // --- Modale Consumato / Buttato ---
+  function openConsumeModal(product) {
+    consumingProduct = product;
+    consumeQty = 1;
+    consumeProductName.textContent = product.name;
+    qtyValue.textContent = consumeQty;
+
+    if (product.quantity > 1) {
+      consumeQtyRow.style.display = 'block';
+    } else {
+      consumeQtyRow.style.display = 'none';
+    }
+    consumeModal.classList.add('show');
+  }
+
+  function closeConsumeModal() {
+    consumeModal.classList.remove('show');
+    consumingProduct = null;
+  }
+
+  qtyMinus.addEventListener('click', () => {
+    if (consumeQty > 1) {
+      consumeQty--;
+      qtyValue.textContent = consumeQty;
+    }
+  });
+
+  qtyPlus.addEventListener('click', () => {
+    if (consumingProduct && consumeQty < consumingProduct.quantity) {
+      consumeQty++;
+      qtyValue.textContent = consumeQty;
+    }
+  });
+
+  consumeCloseBtn.addEventListener('click', closeConsumeModal);
+  consumeModal.addEventListener('click', (e) => {
+    if (e.target === consumeModal) closeConsumeModal();
+  });
+
+  async function applyConsumeAction(type) {
+    if (!consumingProduct) return;
+
+    // snapshot per l'eventuale annulla
+    const productsBefore = await loadProducts();
+    const eventsBefore = await loadEvents();
+    lastSnapshot = {
+      products: JSON.parse(JSON.stringify(productsBefore)),
+      events: JSON.parse(JSON.stringify(eventsBefore))
+    };
+
+    const products = productsBefore;
+    const idx = products.findIndex(p => p.id === consumingProduct.id);
+    if (idx === -1) return;
+
+    const remaining = products[idx].quantity - consumeQty;
+    if (remaining > 0) {
+      products[idx].quantity = remaining;
+    } else {
+      products.splice(idx, 1);
+    }
+
+    await saveProducts(products);
+    await logEvent(type, consumeQty, consumingProduct.name);
+    closeConsumeModal();
+
+    if (type === 'consumato') {
+      showUndoToast(`✅ ${consumingProduct.name} segnato come consumato`);
+    } else {
+      showUndoToast(`😔 Questa volta non ce l'abbiamo fatta: ${consumingProduct.name} buttato`);
+    }
+    render();
+  }
+
+  markConsumedBtn.addEventListener('click', () => applyConsumeAction('consumato'));
+  markWastedBtn.addEventListener('click', () => applyConsumeAction('buttato'));
+
+  // --- Modale Modifica ---
   function openEditModal(product) {
     editingId = product.id;
     editName.value = product.name;
@@ -873,7 +1053,7 @@
     const name = editName.value.trim();
     const date = editDate.value;
     if (!name || !date) {
-      showUndoToastSimple('Compila nome e data di scadenza');
+      showSimpleToast('Compila nome e data di scadenza');
       return;
     }
 
@@ -896,19 +1076,21 @@
 
   modalDeleteBtn.addEventListener('click', async () => {
     if (!editingId) return;
-    const products = await loadProducts();
-    const idx = products.findIndex(p => p.id === editingId);
+    const productsBefore = await loadProducts();
+    const idx = productsBefore.findIndex(p => p.id === editingId);
     if (idx === -1) return;
 
-    lastRemoved = products[idx];
-    products.splice(idx, 1);
-    await saveProducts(products);
+    // Elimina "per correzione": non è un consumo né uno spreco, quindi nessun evento loggato
+    lastSnapshot = { products: JSON.parse(JSON.stringify(productsBefore)), events: null };
+    const removedName = productsBefore[idx].name;
+    productsBefore.splice(idx, 1);
+    await saveProducts(productsBefore);
     closeEditModal();
-    showUndoToast(lastRemoved.name);
+    showUndoToast(`${removedName} eliminato`);
     render();
   });
 
-  function showUndoToastSimple(msg) {
+  function showSimpleToast(msg) {
     clearTimeout(undoTimer);
     toastText.textContent = msg;
     undoBtn.style.display = 'none';
@@ -919,23 +1101,24 @@
     }, 2200);
   }
 
-  function showUndoToast(name) {
+  function showUndoToast(message) {
     clearTimeout(undoTimer);
-    toastText.textContent = `${name} segnato come consumato`;
+    toastText.textContent = message;
+    undoBtn.style.display = 'inline';
     toast.classList.add('show');
     undoTimer = setTimeout(() => {
       toast.classList.remove('show');
-      lastRemoved = null;
-    }, 4000);
+      lastSnapshot = null;
+    }, 4500);
   }
 
   undoBtn.addEventListener('click', async () => {
-    if (!lastRemoved) return;
-    const products = await loadProducts();
-    products.push(lastRemoved);
-    await saveProducts(products);
-    await decrementConsumedCount();
-    lastRemoved = null;
+    if (!lastSnapshot) return;
+    await saveProducts(lastSnapshot.products);
+    if (lastSnapshot.events !== null) {
+      await saveEvents(lastSnapshot.events);
+    }
+    lastSnapshot = null;
     clearTimeout(undoTimer);
     toast.classList.remove('show');
     render();

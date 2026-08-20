@@ -357,6 +357,17 @@
     line-height: 1.3;
   }
 
+  .impact-percent {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
   /* --- Impact tracker (personal, only shows if data present) --- */
   .impact-note {
     text-align: center;
@@ -444,20 +455,20 @@
             <path d="M11 11c0-4 2-7 6-9"></path>
           </svg>
         </div>
-        <h2>Ogni prodotto salvato conta</h2>
-        <p>Una parte enorme del cibo prodotto nel mondo finisce nella spazzatura prima ancora di essere consumato — spesso non perché sia andato a male, ma solo perché ce ne dimentichiamo. Tenere traccia di quello che hai in casa è uno dei modi più semplici per ridurre gli sprechi, risparmiare e fare qualcosa di concreto per l'ambiente.</p>
+        <h2 id="impact-headline">Il tuo impatto</h2>
+        <p id="impact-copy">Una parte enorme del cibo prodotto nel mondo finisce nella spazzatura prima ancora di essere consumato — spesso non perché sia andato a male, ma solo perché ce ne dimentichiamo. Ogni prodotto che segni come consumato invece che buttato è uno spreco in meno.</p>
         <div class="eco-stats">
           <div class="eco-stat">
             <div class="num" id="stat-saved">0</div>
-            <div class="label">Prodotti salvati da te</div>
+            <div class="label">Prodotti salvati</div>
           </div>
           <div class="eco-stat">
-            <div class="num" id="stat-tracked">0</div>
-            <div class="label">In dispensa ora</div>
+            <div class="num" id="stat-week">0</div>
+            <div class="label">Questa settimana</div>
           </div>
         </div>
+        <p class="impact-percent" id="impact-percent" style="display:none;"></p>
       </div>
-      <p class="impact-note" id="impact-note" style="display:none;"></p>
     </section>
 
   </main>
@@ -474,12 +485,12 @@
     }
   }
 
-  async function loadConsumedCount() {
+  async function loadEvents() {
     try {
-      const result = await window.storage.get('dispensa-consumati-count', false);
-      return result ? parseInt(result.value, 10) || 0 : 0;
+      const result = await window.storage.get('dispensa-eventi', false);
+      return result ? JSON.parse(result.value) : [];
     } catch (e) {
-      return 0;
+      return [];
     }
   }
 
@@ -539,16 +550,41 @@
   }
 
   async function renderStats() {
-    const products = await loadProducts();
-    const consumedCount = await loadConsumedCount();
+    const events = await loadEvents();
 
-    document.getElementById('stat-tracked').textContent = products.length;
-    document.getElementById('stat-saved').textContent = consumedCount;
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    const note = document.getElementById('impact-note');
-    if (products.length > 0 || consumedCount > 0) {
-      note.style.display = 'block';
-      note.textContent = 'Continua così: ogni prodotto che segni come consumato invece che buttato è uno spreco in meno.';
+    let totalSaved = 0;
+    let totalWasted = 0;
+    let weekSaved = 0;
+
+    events.forEach(ev => {
+      if (ev.type === 'consumato') {
+        totalSaved += ev.qty;
+        if (new Date(ev.date) >= oneWeekAgo) weekSaved += ev.qty;
+      } else if (ev.type === 'buttato') {
+        totalWasted += ev.qty;
+      }
+    });
+
+    document.getElementById('stat-saved').textContent = totalSaved;
+    document.getElementById('stat-week').textContent = weekSaved;
+
+    const percentEl = document.getElementById('impact-percent');
+    const totalTracked = totalSaved + totalWasted;
+    if (totalTracked > 0) {
+      const pct = Math.round((totalSaved / totalTracked) * 100);
+      percentEl.style.display = 'block';
+      if (pct >= 80) {
+        percentEl.textContent = `🥳 Hai salvato il ${pct}% dei prodotti registrati. Stiamo facendo un ottimo lavoro!`;
+      } else if (pct >= 50) {
+        percentEl.textContent = `🌱 Hai salvato il ${pct}% dei prodotti registrati.`;
+      } else {
+        percentEl.textContent = `Hai salvato il ${pct}% dei prodotti registrati finora — si può migliorare insieme.`;
+      }
+    } else {
+      percentEl.style.display = 'none';
     }
   }
 

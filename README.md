@@ -14,6 +14,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] `aggiungi-prodotto.html` — Scatta foto → OCR automatico della data → conferma
 - [x] `lista-dispensa.html` — Lista prodotti raggruppata per zona (Frigo/Freezer/Dispensa/Cantina), ordinata per urgenza
 - [x] `impostazioni.html` — Categorie, preferenze notifiche (UI pronta, motore di invio da collegare), info app, privacy
+- [x] Gestione quantità con consumo parziale, distinzione Consumato ✅ / Buttato 🗑️, log eventi alla base delle statistiche in home (salvati totali, questa settimana, % salvato)
 - [x] Lista della spesa (`lista-spesa.html`) — aggiungi articoli, spunta quando comprati, svuota il carrello
 
 ## Stack tecnico
