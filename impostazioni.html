@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lo Stipo — Impostazioni</title>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --danger-soft: #F7E9E7;
+    --warning: #B8842F;
+    --warning-soft: #F6EEDF;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header a.back-link {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  header h1 {
+    font-size: 19px;
+    margin: 6px 0 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  /* --- Categorie --- */
+  .category-group {
+    margin-bottom: 14px;
+  }
+  .category-group:last-child { margin-bottom: 0; }
+
+  .category-group-label {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+
+  .category-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .category-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .category-chip.default { color: var(--text-muted); }
+
+  .category-chip .remove-cat {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    font-weight: 700;
+  }
+
+  .add-category-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+
+  .add-category-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .add-category-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .empty-custom {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  /* --- Notifiche --- */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+  }
+
+  .setting-row + .setting-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .setting-row .label-text {
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+
+  .setting-row .label-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    width: 46px;
+    height: 27px;
+    min-width: 46px;
+    background: var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border: none;
+  }
+
+  .toggle.on { background: var(--accent); }
+
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 21px;
+    height: 21px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .toggle.on::after { transform: translateX(19px); }
+
+  .time-input {
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .notice-banner {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+
+  /* --- Info / Privacy list --- */
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 0;
+    font-size: 14px;
+  }
+
+  .info-row + .info-row { border-top: 1px solid var(--border); }
+
+  .info-row .info-label { color: var(--text); font-weight: 500; }
+  .info-row .info-value { color: var(--text-muted); font-size: 13px; }
+
+  .privacy-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .app-footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 8px 0 20px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="index.html" class="back-link">← Home</a>
+    <h1>Impostazioni</h1>
+  </header>
+
+  <main>
+
+    <section>
+      <p class="section-label">Categorie prodotti</p>
+      <div class="card">
+        <div class="category-group">
+          <p class="category-group-label">Categorie di base</p>
+          <div class="category-chip-row" id="default-categories-row"></div>
+        </div>
+        <div class="category-group">
+          <p class="category-group-label">Le tue categorie personalizzate</p>
+          <div class="category-chip-row" id="custom-categories-row"></div>
+        </div>
+        <div class="add-category-row">
+          <input type="text" id="new-category-input" placeholder="Nuova categoria">
+          <button class="add-category-btn" id="add-category-btn">Aggiungi</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Notifiche</p>
+      <div class="card">
+        <div class="setting-row">
+          <div>
+            <div class="label-text">Promemoria scadenze</div>
+            <div class="label-sub">Avviso una settimana prima</div>
+          </div>
+          <button class="toggle" id="notif-toggle"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="label-text">Orario preferito</div>
+            <div class="label-sub">Quando vuoi ricevere i promemoria</div>
+          </div>
+          <input type="time" class="time-input" id="notif-time" value="09:00">
+        </div>
+        <div class="notice-banner">
+          💤 Le notifiche push non sono ancora attive — stiamo costruendo il motore di invio. Le tue preferenze restano salvate e verranno usate non appena saranno pronte, così Lo Stipino non ti sveglierà mai alle 7 del mattino per un litro di latte.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Info app</p>
+      <div class="card">
+        <div class="info-row">
+          <span class="info-label">Nome</span>
+          <span class="info-value">Lo Stipo</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Versione</span>
+          <span class="info-value">v0.1 · in sviluppo</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Obiettivo</span>
+          <span class="info-value">Ridurre lo spreco alimentare</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Privacy</p>
+      <div class="card">
+        <p class="privacy-text">
+          I tuoi prodotti, la lista della spesa e le tue preferenze sono salvati solo per te, legati a questo dispositivo/browser — non li vede nessun altro. Non c'è ancora un sistema di account: se cambi telefono o browser, i dati non si trasferiscono automaticamente. È una delle cose da costruire prima del lancio pubblico.
+        </p>
+      </div>
+    </section>
+
+    <div class="app-footer">Lo Stipo · fatto per non buttare più niente 🌿</div>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  const CATEGORIES_KEY = 'categorie-personalizzate';
+  const NOTIF_PREFS_KEY = 'preferenze-notifiche';
+  const DEFAULT_CATEGORIES = [
+    { value: 'latticini', label: 'Latticini' },
+    { value: 'uova', label: 'Uova' },
+    { value: 'carne', label: 'Carne' },
+    { value: 'pesce', label: 'Pesce' },
+    { value: 'verdura', label: 'Verdura' },
+    { value: 'frutta', label: 'Frutta' },
+    { value: 'conserve', label: 'Conserve' },
+    { value: 'surgelati', label: 'Surgelati' },
+    { value: 'altro', label: 'Altro' }
+  ];
+
+  const defaultCategoriesRow = document.getElementById('default-categories-row');
+  const customCategoriesRow = document.getElementById('custom-categories-row');
+  const newCategoryInput = document.getElementById('new-category-input');
+  const addCategoryBtn = document.getElementById('add-category-btn');
+  const notifToggle = document.getElementById('notif-toggle');
+  const notifTime = document.getElementById('notif-time');
+
+  // --- Categorie ---
+  async function loadCustomCategories() {
+    try {
+      const result = await window.storage.get(CATEGORIES_KEY, false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveCustomCategories(categories) {
+    try {
+      await window.storage.set(CATEGORIES_KEY, JSON.stringify(categories), false);
+    } catch (e) {
+      console.error('Errore salvataggio categorie', e);
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderDefaultCategories() {
+    defaultCategoriesRow.innerHTML = DEFAULT_CATEGORIES.map(c =>
+      `<span class="category-chip default">${c.label}</span>`
+    ).join('');
+  }
+
+  async function renderCustomCategories() {
+    const custom = await loadCustomCategories();
+    if (custom.length === 0) {
+      customCategoriesRow.innerHTML = `<span class="empty-custom">Non hai ancora creato categorie personalizzate</span>`;
+      return;
+    }
+    customCategoriesRow.innerHTML = custom.map(cat => `
+      <span class="category-chip" data-cat="${escapeHtml(cat)}">
+        ${escapeHtml(cat.charAt(0).toUpperCase() + cat.slice(1))}
+        <button class="remove-cat" aria-label="Rimuovi categoria">✕</button>
+      </span>
+    `).join('');
+
+    customCategoriesRow.querySelectorAll('.remove-cat').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const chip = btn.closest('.category-chip');
+        const catToRemove = chip.dataset.cat;
+        const custom = await loadCustomCategories();
+        const filtered = custom.filter(c => c !== catToRemove);
+        await saveCustomCategories(filtered);
+        renderCustomCategories();
+      });
+    });
+  }
+
+  addCategoryBtn.addEventListener('click', async () => {
+    const name = newCategoryInput.value.trim();
+    if (!name) {
+      newCategoryInput.focus();
+      return;
+    }
+    const custom = await loadCustomCategories();
+    const exists = custom.some(c => c.toLowerCase() === name.toLowerCase()) ||
+      DEFAULT_CATEGORIES.some(c => c.value === name.toLowerCase());
+
+    if (!exists) {
+      custom.push(name.toLowerCase());
+      await saveCustomCategories(custom);
+      renderCustomCategories();
+    }
+    newCategoryInput.value = '';
+  });
+
+  newCategoryInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addCategoryBtn.click();
+  });
+
+  // --- Notifiche (preferenze salvate, motore non ancora attivo) ---
+  async function loadNotifPrefs() {
+    try {
+      const result = await window.storage.get(NOTIF_PREFS_KEY, false);
+      return result ? JSON.parse(result.value) : { enabled: true, time: '09:00' };
+    } catch (e) {
+      return { enabled: true, time: '09:00' };
+    }
+  }
+
+  async function saveNotifPrefs(prefs) {
+    try {
+      await window.storage.set(NOTIF_PREFS_KEY, JSON.stringify(prefs), false);
+    } catch (e) {
+      console.error('Errore salvataggio preferenze notifiche', e);
+    }
+  }
+
+  async function initNotifPrefs() {
+    const prefs = await loadNotifPrefs();
+    notifToggle.classList.toggle('on', prefs.enabled);
+    notifTime.value = prefs.time || '09:00';
+  }
+
+  notifToggle.addEventListener('click', async () => {
+    const isOn = notifToggle.classList.toggle('on');
+    const prefs = await loadNotifPrefs();
+    prefs.enabled = isOn;
+    await saveNotifPrefs(prefs);
+  });
+
+  notifTime.addEventListener('change', async () => {
+    const prefs = await loadNotifPrefs();
+    prefs.time = notifTime.value;
+    await saveNotifPrefs(prefs);
+  });
+
+  // --- Init ---
+  renderDefaultCategories();
+  renderCustomCategories();
+  initNotifPrefs();
+})();
+</script>
+</body>
+</html>
