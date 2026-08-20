@@ -596,14 +596,14 @@
       <div class="modal-field">
         <label for="edit-category">Categoria</label>
         <select id="edit-category">
-          <option value="latticini">Latticini</option>
-          <option value="uova">Uova</option>
-          <option value="carne">Carne</option>
-          <option value="pesce">Pesce</option>
-          <option value="verdura">Verdura</option>
-          <option value="frutta">Frutta</option>
-          <option value="conserve">Conserve</option>
-          <option value="surgelati">Surgelati</option>
+          <option value="latticini">🥛 Latticini</option>
+          <option value="carne">🥩 Carne</option>
+          <option value="pesce">🐟 Pesce</option>
+          <option value="frutta_verdura">🥦 Frutta e verdura</option>
+          <option value="dispensa_secca">🥫 Dispensa</option>
+          <option value="uova">🥚 Uova</option>
+          <option value="surgelati">🧊 Surgelati</option>
+          <option value="bevande">🥤 Bevande</option>
           <option value="altro">Altro</option>
           <option value="__new__">+ Nuova categoria...</option>
         </select>
@@ -691,7 +691,7 @@
 
   // --- Categorie personalizzate (condivise con aggiungi-prodotto.html) ---
   const CATEGORIES_KEY = 'categorie-personalizzate';
-  const DEFAULT_CATEGORIES = ['latticini', 'uova', 'carne', 'pesce', 'verdura', 'frutta', 'conserve', 'surgelati', 'altro'];
+  const DEFAULT_CATEGORIES = ['latticini', 'carne', 'pesce', 'frutta_verdura', 'dispensa_secca', 'uova', 'surgelati', 'bevande', 'altro'];
 
   async function loadCustomCategories() {
     try {

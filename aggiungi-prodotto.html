@@ -134,6 +134,17 @@
   .btn-secondary { background: var(--accent-soft); color: var(--accent); }
   .btn-ghost { background: transparent; color: var(--text-muted); }
 
+  .manual-entry-link {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px 0;
+    font-family: inherit;
+  }
+
   #camera-input { display: none; }
 
   .preview-wrap {
@@ -472,6 +483,7 @@
         <label for="camera-input" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
           Scatta foto
         </label>
+        <button type="button" id="manual-entry-link" class="manual-entry-link">oppure inserisci manualmente ↓</button>
       </div>
 
       <div id="preview-state" style="display:none;">
@@ -523,14 +535,14 @@
         <div class="field">
           <label for="product-category">Categoria</label>
           <select id="product-category">
-            <option value="latticini">Latticini</option>
-            <option value="uova">Uova</option>
-            <option value="carne">Carne</option>
-            <option value="pesce">Pesce</option>
-            <option value="verdura">Verdura</option>
-            <option value="frutta">Frutta</option>
-            <option value="conserve">Conserve</option>
-            <option value="surgelati">Surgelati</option>
+            <option value="latticini">🥛 Latticini</option>
+            <option value="carne">🥩 Carne</option>
+            <option value="pesce">🐟 Pesce</option>
+            <option value="frutta_verdura">🥦 Frutta e verdura</option>
+            <option value="dispensa_secca">🥫 Dispensa</option>
+            <option value="uova">🥚 Uova</option>
+            <option value="surgelati">🧊 Surgelati</option>
+            <option value="bevande">🥤 Bevande</option>
             <option value="altro" selected>Altro</option>
             <option value="__new__">+ Nuova categoria...</option>
           </select>
@@ -577,6 +589,7 @@
 (function () {
   const cameraInput = document.getElementById('camera-input');
   const captureEmptyState = document.getElementById('capture-empty-state');
+  const manualEntryLink = document.getElementById('manual-entry-link');
   const previewState = document.getElementById('preview-state');
   const previewImg = document.getElementById('preview-img');
   const retakeBtn = document.getElementById('retake-btn');
@@ -594,6 +607,11 @@
   const altDatesChips = document.getElementById('alt-dates-chips');
   const productDateInput = document.getElementById('product-date');
   const productNameInput = document.getElementById('product-name');
+
+  manualEntryLink.addEventListener('click', () => {
+    productNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    productNameInput.focus();
+  });
   const productCategoryInput = document.getElementById('product-category');
   const newCategoryRow = document.getElementById('new-category-row');
   const newCategoryInput = document.getElementById('new-category-input');
@@ -836,7 +854,7 @@
 
     const custom = await loadCustomCategories();
     const exists = custom.some(c => c.toLowerCase() === name.toLowerCase()) ||
-      ['latticini', 'uova', 'carne', 'pesce', 'verdura', 'frutta', 'conserve', 'surgelati', 'altro']
+      ['latticini', 'carne', 'pesce', 'frutta_verdura', 'dispensa_secca', 'uova', 'surgelati', 'bevande', 'altro']
         .includes(name.toLowerCase());
 
     if (!exists) {
@@ -980,6 +998,11 @@
   }
 
   // --- Init ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const prefilledName = urlParams.get('nome');
+  if (prefilledName) {
+    productNameInput.value = prefilledName;
+  }
   renderRecent();
 })();
 </script>

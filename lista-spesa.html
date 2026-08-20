@@ -242,6 +242,52 @@
     line-height: 1.5;
   }
 
+  .stipo-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(30px);
+    width: calc(100% - 32px);
+    max-width: 448px;
+    background: var(--accent);
+    color: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(47,111,78,0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    z-index: 30;
+  }
+
+  .stipo-banner.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+
+  .stipo-banner span {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .stipo-banner-btn {
+    background: white;
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   .empty-checked {
     font-size: 12.5px;
     color: var(--text-muted);
@@ -266,6 +312,11 @@
 
     <div id="list-content"></div>
   </main>
+</div>
+
+<div class="stipo-banner" id="add-to-stipo-banner">
+  <span id="add-to-stipo-text"></span>
+  <a href="aggiungi-prodotto.html" id="add-to-stipo-btn" class="stipo-banner-btn">📷 Aggiungi allo Stipo</a>
 </div>
 
 <script>
@@ -363,8 +414,14 @@
         const id = btn.closest('.item-row').dataset.id;
         const items = await loadItems();
         const item = items.find(i => i.id === id);
-        if (item) item.checked = !item.checked;
+        if (!item) return;
+
+        item.checked = !item.checked;
         await saveItems(items);
+
+        if (item.checked) {
+          showAddToStipoPrompt(item.name);
+        }
         render();
       });
     });
@@ -388,6 +445,19 @@
         render();
       });
     }
+  }
+
+  function showAddToStipoPrompt(name) {
+    const banner = document.getElementById('add-to-stipo-banner');
+    const bannerText = document.getElementById('add-to-stipo-text');
+    const bannerBtn = document.getElementById('add-to-stipo-btn');
+
+    bannerText.textContent = `✓ ${name} aggiunto! Vuoi fotografare la scadenza?`;
+    bannerBtn.href = `aggiungi-prodotto.html?nome=${encodeURIComponent(name)}`;
+    banner.classList.add('show');
+
+    clearTimeout(window.__stipoTimer);
+    window.__stipoTimer = setTimeout(() => banner.classList.remove('show'), 6000);
   }
 
   async function addItem() {
