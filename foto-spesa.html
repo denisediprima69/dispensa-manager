@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lo Stipo — Foto della spesa</title>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --danger-soft: #F7E9E7;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header a.back-link {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  header h1 {
+    font-size: 19px;
+    margin: 6px 0 0;
+    font-weight: 600;
+  }
+
+  header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .capture-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .capture-empty {
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .capture-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .capture-icon svg { width: 26px; height: 26px; stroke: var(--accent); }
+
+  .capture-empty h2 { font-size: 15px; margin: 0; font-weight: 600; }
+  .capture-empty p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 280px;
+    line-height: 1.5;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--accent-soft); color: var(--accent); }
+
+  #spesa-input { display: none; }
+
+  .preview-wrap { position: relative; }
+  .preview-wrap img { width: 100%; display: block; max-height: 280px; object-fit: cover; }
+
+  .retake-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(28,28,26,0.65);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .analyzing-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-banner {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .results-header {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .item-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .item-name-input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 14.5px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .item-remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 6px;
+    line-height: 1;
+  }
+
+  .item-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .item-row-2 select,
+  .item-row-2 input {
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .item-date-missing { border-color: var(--danger) !important; }
+
+  .add-all-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    padding-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="index.html" class="back-link">← Home</a>
+    <h1>Foto della spesa</h1>
+    <p>Una foto di tutti i prodotti insieme: provo a riconoscerli tutti</p>
+  </header>
+
+  <main>
+    <div class="capture-card" id="capture-card">
+      <div id="capture-empty-state" class="capture-empty">
+        <div class="capture-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+            <path d="M3 6h18"></path>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <h2>Metti i prodotti sul tavolo</h2>
+        <p>Disponili in modo che si vedano bene tutti, poi scatta una foto d'insieme</p>
+        <label for="spesa-input" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
+          Scatta foto della spesa
+        </label>
+      </div>
+
+      <div id="preview-state" style="display:none;">
+        <div class="preview-wrap">
+          <img id="preview-img" src="" alt="Foto della spesa">
+          <button class="retake-btn" id="retake-btn">Rifai foto</button>
+        </div>
+        <div id="analyzing-status" class="analyzing-status" style="display:none;">
+          <div class="spinner"></div>
+          <span id="analyzing-text">Sto riconoscendo i prodotti...</span>
+        </div>
+      </div>
+
+      <input type="file" id="spesa-input" accept="image/*" capture="environment">
+    </div>
+
+    <div id="error-container"></div>
+
+    <div id="results-container" style="display:none;">
+      <p class="results-header" id="results-count-label">Prodotti trovati</p>
+      <div id="results-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
+    <div class="add-all-bar" id="add-all-bar" style="display:none;">
+      <button class="btn btn-primary" id="add-all-btn">Aggiungi tutti allo Stipo</button>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  const spesaInput = document.getElementById('spesa-input');
+  const captureEmptyState = document.getElementById('capture-empty-state');
+  const previewState = document.getElementById('preview-state');
+  const previewImg = document.getElementById('preview-img');
+  const retakeBtn = document.getElementById('retake-btn');
+  const analyzingStatus = document.getElementById('analyzing-status');
+  const analyzingText = document.getElementById('analyzing-text');
+  const errorContainer = document.getElementById('error-container');
+  const resultsContainer = document.getElementById('results-container');
+  const resultsCountLabel = document.getElementById('results-count-label');
+  const resultsList = document.getElementById('results-list');
+  const addAllBar = document.getElementById('add-all-bar');
+  const addAllBtn = document.getElementById('add-all-btn');
+
+  const CATEGORIES = [
+    { value: 'latticini', label: '🥛 Latticini' },
+    { value: 'carne', label: '🥩 Carne' },
+    { value: 'pesce', label: '🐟 Pesce' },
+    { value: 'frutta_verdura', label: '🥦 Frutta e verdura' },
+    { value: 'dispensa_secca', label: '🥫 Dispensa' },
+    { value: 'uova', label: '🥚 Uova' },
+    { value: 'surgelati', label: '🧊 Surgelati' },
+    { value: 'bevande', label: '🥤 Bevande' },
+    { value: 'altro', label: 'Altro' }
+  ];
+
+  let detectedItems = [];
+
+  spesaInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      previewImg.src = evt.target.result;
+      captureEmptyState.style.display = 'none';
+      previewState.style.display = 'block';
+      errorContainer.innerHTML = '';
+      resultsContainer.style.display = 'none';
+      addAllBar.style.display = 'none';
+      analyzeShoppingPhoto(evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  retakeBtn.addEventListener('click', () => {
+    spesaInput.value = '';
+    captureEmptyState.style.display = 'flex';
+    previewState.style.display = 'none';
+    analyzingStatus.style.display = 'none';
+    errorContainer.innerHTML = '';
+    resultsContainer.style.display = 'none';
+    addAllBar.style.display = 'none';
+  });
+
+  function showError(message) {
+    errorContainer.innerHTML = `<div class="error-banner">⚠️ ${message}</div>`;
+  }
+
+  async function analyzeShoppingPhoto(imageDataUrl) {
+    analyzingStatus.style.display = 'flex';
+    analyzingText.textContent = 'Sto riconoscendo i prodotti...';
+    errorContainer.innerHTML = '';
+
+    const base64Data = imageDataUrl.split(',')[1];
+    const mediaType = imageDataUrl.split(';')[0].split(':')[1];
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
+                {
+                  type: 'text',
+                  text: 'Guarda questa foto di prodotti alimentari appena comprati. Elenca ogni prodotto distinto che riesci a riconoscere. Per ciascuno indica un nome breve in italiano e una categoria scelta SOLO tra questi valori esatti: latticini, carne, pesce, frutta_verdura, dispensa_secca, uova, surgelati, bevande, altro. Rispondi SOLO con un array JSON valido, senza testo prima o dopo, nel formato: [{"name": "Yogurt bianco", "category": "latticini"}]. Se non riconosci nessun prodotto alimentare, rispondi con [].'
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      const textBlock = (data.content || []).find(b => b.type === 'text');
+      if (!textBlock) throw new Error('Risposta vuota');
+
+      const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
+      const items = JSON.parse(cleaned);
+
+      analyzingStatus.style.display = 'none';
+
+      if (!Array.isArray(items) || items.length === 0) {
+        showError('Non sono riuscito a riconoscere prodotti in questa foto. Prova con più luce o con i prodotti più distanziati tra loro, oppure aggiungili singolarmente.');
+        return;
+      }
+
+      detectedItems = items.map((it, idx) => ({
+        id: 'item_' + idx + '_' + Date.now(),
+        name: it.name || '',
+        category: CATEGORIES.some(c => c.value === it.category) ? it.category : 'altro'
+      }));
+
+      renderResults();
+    } catch (err) {
+      console.error(err);
+      analyzingStatus.style.display = 'none';
+      showError('Il riconoscimento non è riuscito. Puoi riprovare con un\'altra foto oppure aggiungere i prodotti singolarmente dalla schermata "Aggiungi prodotto".');
+    }
+  }
+
+  function renderResults() {
+    if (detectedItems.length === 0) {
+      resultsContainer.style.display = 'none';
+      addAllBar.style.display = 'none';
+      return;
+    }
+
+    resultsContainer.style.display = 'block';
+    addAllBar.style.display = 'block';
+    resultsCountLabel.textContent = `${detectedItems.length} prodotti trovati — controlla e aggiungi la scadenza`;
+
+    resultsList.innerHTML = detectedItems.map(item => `
+      <div class="item-card" data-id="${item.id}">
+        <div class="item-card-top">
+          <input type="text" class="item-name-input" value="${escapeHtml(item.name)}" data-field="name" data-id="${item.id}">
+          <button class="item-remove-btn" data-remove="${item.id}" aria-label="Rimuovi">✕</button>
+        </div>
+        <div class="item-row-2">
+          <select data-field="category" data-id="${item.id}">
+            ${CATEGORIES.map(c => `<option value="${c.value}" ${c.value === item.category ? 'selected' : ''}>${c.label}</option>`).join('')}
+          </select>
+          <input type="date" data-field="date" data-id="${item.id}">
+        </div>
+      </div>
+    `).join('');
+
+    resultsList.querySelectorAll('[data-field]').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const id = e.target.dataset.id;
+        const field = e.target.dataset.field;
+        const item = detectedItems.find(i => i.id === id);
+        if (!item) return;
+        if (field === 'name') item.name = e.target.value;
+        if (field === 'category') item.category = e.target.value;
+        if (field === 'date') item.date = e.target.value;
+      });
+    });
+
+    resultsList.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.remove;
+        detectedItems = detectedItems.filter(i => i.id !== id);
+        renderResults();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadProducts() {
+    try {
+      const result = await window.storage.get('dispensa-prodotti', false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveProducts(products) {
+    try {
+      await window.storage.set('dispensa-prodotti', JSON.stringify(products), false);
+    } catch (e) {
+      console.error('Errore salvataggio', e);
+    }
+  }
+
+  addAllBtn.addEventListener('click', async () => {
+    const missing = detectedItems.filter(i => !i.name.trim() || !i.date);
+    resultsList.querySelectorAll('input[type="date"]').forEach(input => {
+      const item = detectedItems.find(i => i.id === input.dataset.id);
+      input.classList.toggle('item-date-missing', item && !item.date);
+    });
+
+    if (missing.length > 0) {
+      showError(`Manca la data di scadenza per ${missing.length} prodotto/i evidenziato/i in rosso — completa prima di continuare.`);
+      return;
+    }
+
+    addAllBtn.disabled = true;
+    addAllBtn.textContent = 'Aggiungo allo Stipo...';
+
+    const products = await loadProducts();
+    detectedItems.forEach(item => {
+      products.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        name: item.name.trim(),
+        category: item.category,
+        quantity: 1,
+        expiryDate: item.date,
+        location: 'frigo',
+        addedAt: new Date().toISOString()
+      });
+    });
+    await saveProducts(products);
+
+    window.location.href = 'lista-dispensa.html';
+  });
+})();
+</script>
+</body>
+</html>
