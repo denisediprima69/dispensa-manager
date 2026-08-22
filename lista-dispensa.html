@@ -192,6 +192,27 @@
     stroke-width: 3;
   }
 
+  .more-btn {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .more-btn:hover {
+    background: var(--bg);
+  }
+
   .product-info {
     flex: 1;
     min-width: 0;
@@ -854,7 +875,7 @@
     const qtyText = p.quantity > 1 ? ` · ${p.quantity} pezzi` : '';
     return `
       <div class="product-row" data-id="${p.id}">
-        <button class="check-btn" aria-label="Segna come consumato o buttato">
+        <button class="check-btn" aria-label="Consuma 1 unità">
           <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </button>
         <div class="product-info" data-id="${p.id}">
@@ -862,6 +883,7 @@
           <div class="meta">${formatDateIt(p.expiryDate)}${qtyText}</div>
         </div>
         <div class="badge ${badge.cls}"><span class="status-dot ${badge.cls}" style="display:inline-block; margin-right:5px; vertical-align:middle;"></span>${badge.text}</div>
+        <button class="more-btn" aria-label="Altre azioni">⋯</button>
       </div>
     `;
   }
@@ -935,6 +957,17 @@
         const products = await loadProducts();
         const product = products.find(p => p.id === id);
         if (!product) return;
+        quickConsumeOne(product);
+      });
+    });
+
+    document.querySelectorAll('.more-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('.product-row');
+        const id = row.dataset.id;
+        const products = await loadProducts();
+        const product = products.find(p => p.id === id);
+        if (!product) return;
         openConsumeModal(product);
       });
     });
@@ -988,6 +1021,33 @@
   consumeModal.addEventListener('click', (e) => {
     if (e.target === consumeModal) closeConsumeModal();
   });
+
+  // --- Consumo rapido: un tap = 1 unità consumata, senza aprire il modale ---
+  async function quickConsumeOne(product) {
+    const productsBefore = await loadProducts();
+    const eventsBefore = await loadEvents();
+    lastSnapshot = {
+      products: JSON.parse(JSON.stringify(productsBefore)),
+      events: JSON.parse(JSON.stringify(eventsBefore))
+    };
+
+    const idx = productsBefore.findIndex(p => p.id === product.id);
+    if (idx === -1) return;
+
+    const remaining = productsBefore[idx].quantity - 1;
+    if (remaining > 0) {
+      productsBefore[idx].quantity = remaining;
+    } else {
+      productsBefore.splice(idx, 1);
+    }
+
+    await saveProducts(productsBefore);
+    await logEvent('consumato', 1, product.name);
+
+    const remainingText = remaining > 0 ? ` (${remaining} rimasti)` : '';
+    showUndoToast(`✅ ${product.name} consumato${remainingText}`);
+    render();
+  }
 
   async function applyConsumeAction(type) {
     if (!consumingProduct) return;

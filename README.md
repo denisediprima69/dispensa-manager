@@ -19,7 +19,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 ### Funzionalità trasversali
 
 - [x] Categorie semplificate con emoji (Latticini, Carne, Pesce, Frutta e verdura, Dispensa, Uova, Surgelati, Bevande, Altro) + categorie personalizzate create dall'utente, condivise in tutta l'app
-- [x] Quantità con consumo parziale, distinzione Consumato ✅ / Buttato 🗑️, log eventi (`dispensa-eventi`) alla base delle statistiche in home
+- [x] Quantità con consumo parziale, distinzione Consumato ✅ / Buttato 🗑️, log eventi (`dispensa-eventi`) alla base delle statistiche in home. Consumo rapido: un tap sul cerchietto toglie 1 unità senza modali; il pulsante "⋯" apre il modale completo per "buttato" o quantità multiple
 - [x] Modifica prodotto (nome, categoria, quantità, data, zona) con eliminazione separata dal flusso consumo/spreco
 - [x] Scansione barcode in **due passaggi separati** (barcode facoltativo → data di scadenza): risolve il problema reale per cui barcode e scadenza sono spesso su lati opposti della confezione. Riconoscimento barcode tramite ZXing + ricerca automatica nome prodotto su Open Food Facts. Banner suggerimento disattivabile in modo permanente (riattivabile da Impostazioni)
 
