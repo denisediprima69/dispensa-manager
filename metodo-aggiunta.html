@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lo Stipo — Come vuoi aggiungere?</title>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  header a.back-link {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  header h1 { font-size: 19px; margin: 6px 0 0; font-weight: 600; }
+  header p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .method-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .method-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+  }
+
+  .method-body h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  .method-body p {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+    line-height: 1.5;
+  }
+
+  .method-detail {
+    font-size: 11.5px;
+    color: var(--accent);
+    font-weight: 600;
+    line-height: 1.5;
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="index.html" class="back-link">← Home</a>
+    <h1>Come vuoi aggiungere?</h1>
+    <p>Scegli il metodo più adatto al prodotto che hai in mano</p>
+  </header>
+
+  <main>
+    <a href="prodotto-peso.html" class="method-card">
+      <div class="method-icon">⚖️</div>
+      <div class="method-body">
+        <h2>Prodotto fresco a peso</h2>
+        <p>Salumi, formaggi, pesce, pane pesato — quelli con l'etichetta stampata dalla bilancia del banco frigo</p>
+        <div class="method-detail">📸 Fotografa quel barcode: a volte contiene già la scadenza, senza bisogno di un'altra foto</div>
+      </div>
+    </a>
+
+    <a href="aggiungi-prodotto.html" class="method-card">
+      <div class="method-icon">📦</div>
+      <div class="method-body">
+        <h2>Prodotto confezionato</h2>
+        <p>Yogurt, pasta, bibite, conserve — prodotti industriali con barcode standard</p>
+        <div class="method-detail">📸 Due foto separate: barcode (facoltativo, per il nome) e data di scadenza</div>
+      </div>
+    </a>
+
+    <a href="scontrino.html" class="method-card">
+      <div class="method-icon">🧾</div>
+      <div class="method-body">
+        <h2>Scontrino della spesa</h2>
+        <p>Tornato dalla spesa con più prodotti insieme? Aggiungili tutti in un colpo solo</p>
+        <div class="method-detail">🎤 Una foto dello scontrino, poi scadenze a voce o con pulsanti rapidi</div>
+      </div>
+    </a>
+  </main>
+</div>
+</body>
+</html>

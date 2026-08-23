@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lo Stipo — Prodotto a peso</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --danger-soft: #F7E9E7;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header a.back-link { font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; }
+  header h1 { font-size: 19px; margin: 6px 0 0; font-weight: 600; }
+  header p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+
+  .step-indicator {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 8px 16px;
+    text-align: center;
+  }
+
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .capture-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .capture-empty {
+    padding: 36px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .capture-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+
+  .capture-empty h2 { font-size: 15px; margin: 0; font-weight: 600; }
+  .capture-empty p { font-size: 13px; color: var(--text-muted); margin: 0; max-width: 280px; line-height: 1.5; }
+
+  .btn {
+    appearance: none; border: none; border-radius: 10px;
+    padding: 13px 20px; font-size: 15px; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 8px; width: 100%;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--accent-soft); color: var(--accent); }
+
+  #barcode-input, #date-input { display: none; }
+
+  .preview-wrap { position: relative; }
+  .preview-wrap img { width: 100%; display: block; max-height: 260px; object-fit: cover; }
+
+  .retake-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(28,28,26,0.65); color: white; border: none;
+    border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+
+  .status-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; font-size: 13px; color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  .spinner {
+    width: 15px; height: 15px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .gs1-found-panel { padding: 20px 16px; text-align: center; }
+
+  .gs1-badge {
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; margin-bottom: 10px;
+  }
+
+  .gs1-date-big { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .gs1-question { font-size: 13.5px; color: var(--text-muted); margin: 0 0 14px; }
+
+  .confirm-actions { display: flex; gap: 8px; }
+  .btn-confirm { width: auto; flex: 1; padding: 12px 10px; font-size: 13.5px; }
+
+  .error-banner {
+    background: var(--danger-soft); color: var(--danger);
+    border-radius: 10px; padding: 13px 14px; font-size: 13px; line-height: 1.5;
+  }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .field label {
+    display: block; font-size: 12px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px;
+  }
+
+  .field input, .field select {
+    width: 100%; padding: 12px 13px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+    font-size: 15px; color: var(--text); font-family: inherit;
+  }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .location-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .location-pill {
+    border: 1px solid var(--border); background: var(--bg); border-radius: 10px;
+    padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); cursor: pointer;
+  }
+  .location-pill.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: white; padding: 12px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.25s ease; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="metodo-aggiunta.html" class="back-link">← Cambia metodo</a>
+    <h1>Prodotto a peso</h1>
+    <p>Fotografa il barcode stampato dalla bilancia</p>
+  </header>
+
+  <div class="step-indicator" id="step-indicator">Passo 1 di 2 · Barcode</div>
+
+  <main>
+    <div id="step1">
+      <div class="capture-card">
+        <div id="capture-empty-state" class="capture-empty">
+          <div class="capture-icon">⚖️</div>
+          <h2>Scansiona il barcode della bilancia</h2>
+          <p>Quello con peso e prezzo stampati, di solito sopra o sotto il codice a barre</p>
+          <label for="barcode-input" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
+            Scatta foto
+          </label>
+        </div>
+
+        <div id="preview-state" style="display:none;">
+          <div class="preview-wrap">
+            <img id="preview-img" src="" alt="Anteprima barcode">
+            <button class="retake-btn" id="retake-btn">Rifai foto</button>
+          </div>
+          <div id="scan-status" class="status-row" style="display:none;">
+            <div class="spinner"></div>
+            <span id="scan-status-text">Leggo il codice...</span>
+          </div>
+
+          <div id="gs1-found-panel" class="gs1-found-panel" style="display:none;">
+            <div class="gs1-badge">📦 Trovata nel codice</div>
+            <div class="gs1-date-big" id="gs1-date-text">—</div>
+            <p class="gs1-question">È la data di scadenza corretta?</p>
+            <div class="confirm-actions">
+              <button class="btn btn-primary btn-confirm" id="gs1-yes-btn">✓ Sì, usa questa</button>
+              <button class="btn btn-secondary btn-confirm" id="gs1-no-btn">Fotografa la data</button>
+            </div>
+          </div>
+        </div>
+
+        <input type="file" id="barcode-input" accept="image/*" capture="environment">
+      </div>
+
+      <div id="error-container" style="margin-top:14px;"></div>
+    </div>
+
+    <div id="step2" style="display:none;">
+      <div class="capture-card">
+        <div id="date-empty-state" class="capture-empty">
+          <div class="capture-icon">📅</div>
+          <h2>Fotografa la data di scadenza</h2>
+          <p>Il codice non conteneva una data leggibile — fotografa la data stampata sull'etichetta</p>
+          <label for="date-input" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
+            Scatta foto
+          </label>
+          <button type="button" id="skip-date-photo-btn" class="btn btn-secondary" style="width:auto; margin-top:6px; padding-left:20px; padding-right:20px;">Inserisci data manualmente</button>
+        </div>
+
+        <div id="date-preview-state" style="display:none;">
+          <div class="preview-wrap">
+            <img id="date-preview-img" src="" alt="Anteprima data">
+            <button class="retake-btn" id="date-retake-btn">Rifai foto</button>
+          </div>
+          <div id="ocr-status" class="status-row" style="display:none;">
+            <div class="spinner"></div>
+            <span id="ocr-status-text">Leggo la data...</span>
+          </div>
+        </div>
+
+        <input type="file" id="date-input" accept="image/*" capture="environment">
+      </div>
+    </div>
+
+    <div class="form-card" id="form-card" style="display:none;">
+      <div class="field">
+        <label for="product-name">Nome prodotto</label>
+        <input type="text" id="product-name" placeholder="Es. Prosciutto cotto">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label for="product-category">Categoria</label>
+          <select id="product-category">
+            <option value="latticini">🥛 Latticini</option>
+            <option value="carne" selected>🥩 Carne</option>
+            <option value="pesce">🐟 Pesce</option>
+            <option value="frutta_verdura">🥦 Frutta e verdura</option>
+            <option value="dispensa_secca">🥫 Dispensa</option>
+            <option value="uova">🥚 Uova</option>
+            <option value="surgelati">🧊 Surgelati</option>
+            <option value="bevande">🥤 Bevande</option>
+            <option value="altro">Altro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="product-qty">Quantità</label>
+          <input type="number" id="product-qty" value="1" min="1">
+        </div>
+      </div>
+      <div class="field">
+        <label for="product-date">Data di scadenza</label>
+        <input type="date" id="product-date">
+      </div>
+      <div class="field">
+        <label>Dove si trova</label>
+        <div class="location-row" id="location-row">
+          <div class="location-pill selected" data-location="frigo">Frigo</div>
+          <div class="location-pill" data-location="dispensa">Dispensa</div>
+          <div class="location-pill" data-location="freezer">Freezer</div>
+          <div class="location-pill" data-location="cantina">Cantina</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="save-btn">Aggiungi allo Stipo</button>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const stepIndicator = document.getElementById('step-indicator');
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const formCard = document.getElementById('form-card');
+
+  const barcodeInput = document.getElementById('barcode-input');
+  const captureEmptyState = document.getElementById('capture-empty-state');
+  const previewState = document.getElementById('preview-state');
+  const previewImg = document.getElementById('preview-img');
+  const retakeBtn = document.getElementById('retake-btn');
+  const scanStatus = document.getElementById('scan-status');
+  const scanStatusText = document.getElementById('scan-status-text');
+  const gs1FoundPanel = document.getElementById('gs1-found-panel');
+  const gs1DateText = document.getElementById('gs1-date-text');
+  const gs1YesBtn = document.getElementById('gs1-yes-btn');
+  const gs1NoBtn = document.getElementById('gs1-no-btn');
+  const errorContainer = document.getElementById('error-container');
+
+  const dateInput = document.getElementById('date-input');
+  const dateEmptyState = document.getElementById('date-empty-state');
+  const datePreviewState = document.getElementById('date-preview-state');
+  const datePreviewImg = document.getElementById('date-preview-img');
+  const dateRetakeBtn = document.getElementById('date-retake-btn');
+  const skipDatePhotoBtn = document.getElementById('skip-date-photo-btn');
+  const ocrStatus = document.getElementById('ocr-status');
+  const ocrStatusText = document.getElementById('ocr-status-text');
+
+  const productNameInput = document.getElementById('product-name');
+  const productCategoryInput = document.getElementById('product-category');
+  const productQtyInput = document.getElementById('product-qty');
+  const productDateInput = document.getElementById('product-date');
+  const locationRow = document.getElementById('location-row');
+  const saveBtn = document.getElementById('save-btn');
+  const toast = document.getElementById('toast');
+
+  let selectedLocation = 'frigo';
+  let foundGs1Date = null;
+
+  locationRow.addEventListener('click', (e) => {
+    const pill = e.target.closest('.location-pill');
+    if (!pill) return;
+    document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    selectedLocation = pill.dataset.location;
+  });
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function showError(message) {
+    errorContainer.innerHTML = `<div class="error-banner">⚠️ ${message}</div>`;
+  }
+
+  function formatDateIt(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  barcodeInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      previewImg.src = evt.target.result;
+      captureEmptyState.style.display = 'none';
+      previewState.style.display = 'block';
+      gs1FoundPanel.style.display = 'none';
+      errorContainer.innerHTML = '';
+      scanBarcode(evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  retakeBtn.addEventListener('click', () => {
+    barcodeInput.value = '';
+    captureEmptyState.style.display = 'flex';
+    previewState.style.display = 'none';
+    scanStatus.style.display = 'none';
+    gs1FoundPanel.style.display = 'none';
+    errorContainer.innerHTML = '';
+  });
+
+  function scanBarcode(imageDataUrl) {
+    scanStatus.style.display = 'flex';
+    scanStatusText.textContent = 'Leggo il codice...';
+
+    if (typeof ZXing === 'undefined') {
+      scanStatus.style.display = 'none';
+      showError('Lettore barcode non disponibile. Passa alla foto della data.');
+      goToStep2();
+      return;
+    }
+
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    codeReader.decodeFromImageUrl(imageDataUrl)
+      .then((result) => {
+        scanStatus.style.display = 'none';
+        const rawText = result.getText();
+        const gs1Date = extractGS1Date(rawText);
+
+        if (gs1Date) {
+          foundGs1Date = gs1Date;
+          gs1DateText.textContent = formatDateIt(gs1Date);
+          gs1FoundPanel.style.display = 'block';
+        } else {
+          showError('Il codice non contiene una data leggibile — passiamo alla foto della data.');
+          goToStep2();
+        }
+      })
+      .catch(() => {
+        scanStatus.style.display = 'none';
+        showError('Non sono riuscito a leggere il codice. Riprova, o passa alla foto della data.');
+        goToStep2();
+      });
+  }
+
+  function extractGS1Date(rawText) {
+    const cleaned = rawText.replace(/[^\x20-\x7E]/g, '');
+
+    let match = cleaned.match(/17(\d{6})/);
+    if (!match) match = cleaned.match(/15(\d{6})/);
+    if (!match) return null;
+
+    const yy = parseInt(match[1].substring(0, 2), 10);
+    const mm = parseInt(match[1].substring(2, 4), 10);
+    const dd = parseInt(match[1].substring(4, 6), 10);
+
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+    const year = yy <= 49 ? 2000 + yy : 1900 + yy;
+    const iso = `${year}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+
+    const candidate = new Date(iso);
+    const now = new Date();
+    const minDate = new Date(now.getFullYear() - 1, 0, 1);
+    const maxDate = new Date(now.getFullYear() + 3, 0, 1);
+    if (candidate < minDate || candidate > maxDate) return null;
+
+    return iso;
+  }
+
+  gs1YesBtn.addEventListener('click', () => {
+    productDateInput.value = foundGs1Date;
+    showForm();
+  });
+
+  gs1NoBtn.addEventListener('click', () => {
+    foundGs1Date = null;
+    goToStep2();
+  });
+
+  function goToStep2() {
+    stepIndicator.textContent = 'Passo 2 di 2 · Data di scadenza';
+    step1.style.display = 'none';
+    step2.style.display = 'block';
+  }
+
+  skipDatePhotoBtn.addEventListener('click', () => {
+    showForm();
+  });
+
+  dateInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      datePreviewImg.src = evt.target.result;
+      dateEmptyState.style.display = 'none';
+      datePreviewState.style.display = 'block';
+      runDateOCR(evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  dateRetakeBtn.addEventListener('click', () => {
+    dateInput.value = '';
+    dateEmptyState.style.display = 'flex';
+    datePreviewState.style.display = 'none';
+    ocrStatus.style.display = 'none';
+  });
+
+  function runDateOCR(imageDataUrl) {
+    ocrStatus.style.display = 'flex';
+    ocrStatusText.textContent = 'Leggo la data...';
+
+    Tesseract.recognize(imageDataUrl, 'eng', {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          ocrStatusText.textContent = `Leggo la data... ${Math.round(m.progress * 100)}%`;
+        }
+      }
+    }).then(({ data: { text } }) => {
+      ocrStatus.style.display = 'none';
+      const dates = extractDates(text);
+      if (dates.length > 0) {
+        productDateInput.value = dates[0];
+        showToast(`Data trovata: ${formatDateIt(dates[0])} — verificala nel form`);
+      } else {
+        showToast('Data non trovata, inseriscila nel form qui sotto');
+      }
+      showForm();
+    }).catch(() => {
+      ocrStatus.style.display = 'none';
+      showToast('Lettura non riuscita, inserisci la data manualmente');
+      showForm();
+    });
+  }
+
+  function extractDates(rawText) {
+    const found = [];
+    const patterns = [
+      { regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/g, type: 'dmy' },
+      { regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})\b/g, type: 'dmy2' },
+      { regex: /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/g, type: 'ymd' }
+    ];
+    patterns.forEach(({ regex, type }) => {
+      let match;
+      while ((match = regex.exec(rawText)) !== null) {
+        let iso = null;
+        if (type === 'dmy') iso = toISO(match[3], match[2], match[1]);
+        if (type === 'dmy2') iso = toISO('20' + match[3], match[2], match[1]);
+        if (type === 'ymd') iso = toISO(match[1], match[2], match[3]);
+        if (iso && isPlausibleDate(iso)) found.push(iso);
+      }
+    });
+    return [...new Set(found)];
+  }
+
+  function toISO(y, m, d) {
+    const yy = parseInt(y, 10), mm = parseInt(m, 10), dd = parseInt(d, 10);
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+    return `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  }
+
+  function isPlausibleDate(iso) {
+    const date = new Date(iso);
+    const now = new Date();
+    const minDate = new Date(now.getFullYear() - 1, 0, 1);
+    const maxDate = new Date(now.getFullYear() + 3, 0, 1);
+    return date >= minDate && date <= maxDate;
+  }
+
+  function showForm() {
+    step1.style.display = 'none';
+    step2.style.display = 'none';
+    formCard.style.display = 'flex';
+    productNameInput.focus();
+  }
+
+  async function loadProducts() {
+    try {
+      const result = await window.storage.get('dispensa-prodotti', false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveProducts(products) {
+    try {
+      await window.storage.set('dispensa-prodotti', JSON.stringify(products), false);
+    } catch (e) {
+      console.error('Errore salvataggio', e);
+    }
+  }
+
+  saveBtn.addEventListener('click', async () => {
+    const name = productNameInput.value.trim();
+    const date = productDateInput.value;
+
+    if (!name) { showToast('Inserisci il nome del prodotto'); productNameInput.focus(); return; }
+    if (!date) { showToast('Inserisci la data di scadenza'); productDateInput.focus(); return; }
+
+    const product = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      name,
+      category: productCategoryInput.value,
+      quantity: parseInt(productQtyInput.value, 10) || 1,
+      expiryDate: date,
+      location: selectedLocation,
+      addedAt: new Date().toISOString()
+    };
+
+    saveBtn.disabled = true;
+    const products = await loadProducts();
+    products.push(product);
+    await saveProducts(products);
+
+    window.location.href = 'lista-dispensa.html';
+  });
+})();
+</script>
+</body>
+</html>
