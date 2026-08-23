@@ -15,7 +15,6 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] `lista-dispensa.html` — Lista prodotti raggruppata per zona, modifica prodotto, modale Consumato/Buttato con gestione quantità
 - [x] `lista-spesa.html` — Aggiungi articoli, spunta quando comprati, collegata allo Stipo (banner "Aggiungi allo Stipo" con nome precompilato)
 - [x] `impostazioni.html` — Categorie, preferenze notifiche (UI pronta, motore di invio da collegare), info app, privacy
-- [x] `foto-spesa.html` — Foto unica di tutta la spesa, riconoscimento multi-prodotto con AI Vision (Claude), lista di conferma con nome/categoria/data modificabili prima dell'aggiunta in blocco
 
 ### Funzionalità trasversali
 
