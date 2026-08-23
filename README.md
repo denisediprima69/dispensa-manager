@@ -15,6 +15,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] `lista-dispensa.html` — Lista prodotti raggruppata per zona, modifica prodotto, modale Consumato/Buttato con gestione quantità
 - [x] `lista-spesa.html` — Aggiungi articoli, spunta quando comprati, collegata allo Stipo (banner "Aggiungi allo Stipo" con nome precompilato)
 - [x] `impostazioni.html` — Categorie, preferenze notifiche (UI pronta, motore di invio da collegare), info app, privacy
+- [x] `scontrino.html` — Foto dello scontrino, parsing euristico dei prodotti (regex, nessuna AI esterna), poi per ciascuno: microfono per dettare la scadenza (Web Speech API), pulsanti rapidi (1 settimana / 1 mese / ecc.) o data manuale. Aggiunta in blocco allo Stipo
 
 ### Funzionalità trasversali
 

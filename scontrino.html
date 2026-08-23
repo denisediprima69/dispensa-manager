@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lo Stipo — Scontrino</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+<style>
+  :root {
+    --bg: #F7F7F5;
+    --surface: #FFFFFF;
+    --border: #E4E4E0;
+    --text: #1C1C1A;
+    --text-muted: #6B6B66;
+    --accent: #2F6F4E;
+    --accent-soft: #E8F1EC;
+    --danger: #B3413A;
+    --danger-soft: #F7E9E7;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 20px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header a.back-link {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  header h1 { font-size: 19px; margin: 6px 0 0; font-weight: 600; }
+  header p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+
+  main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .capture-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .capture-empty {
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .capture-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .capture-icon svg { width: 26px; height: 26px; stroke: var(--accent); }
+  .capture-empty h2 { font-size: 15px; margin: 0; font-weight: 600; }
+  .capture-empty p { font-size: 13px; color: var(--text-muted); margin: 0; max-width: 280px; line-height: 1.5; }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: white; }
+
+  #scontrino-input { display: none; }
+
+  .preview-wrap { position: relative; }
+  .preview-wrap img { width: 100%; display: block; max-height: 280px; object-fit: cover; }
+
+  .retake-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(28,28,26,0.65);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .analyzing-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-banner {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .results-header {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .item-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .item-card-top { display: flex; align-items: center; gap: 10px; }
+
+  .item-name-input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 14.5px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .item-remove-btn {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 18px; cursor: pointer; padding: 4px 6px; line-height: 1;
+  }
+
+  .item-category-select {
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    width: 100%;
+  }
+
+  .quick-date-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .quick-date-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .quick-date-chip.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .date-mic-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .date-mic-row input[type="date"] {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .item-date-missing { border-color: var(--danger) !important; }
+
+  .mic-btn {
+    width: 38px; height: 38px; min-width: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .mic-btn.listening {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .mic-feedback {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .mic-feedback.error { color: var(--text-muted); font-weight: 500; }
+
+  .add-all-bar { position: sticky; bottom: 0; background: var(--bg); padding-top: 8px; }
+
+  .voice-unavailable-note {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="index.html" class="back-link">← Home</a>
+    <h1>Scontrino</h1>
+    <p>Fotografa lo scontrino, poi imposta la scadenza per ogni prodotto</p>
+  </header>
+
+  <main>
+    <div class="capture-card" id="capture-card">
+      <div id="capture-empty-state" class="capture-empty">
+        <div class="capture-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2h12v18l-3-2-3 2-3-2-3 2Z"></path>
+            <line x1="9" y1="7" x2="15" y2="7"></line>
+            <line x1="9" y1="11" x2="15" y2="11"></line>
+          </svg>
+        </div>
+        <h2>Fotografa lo scontrino</h2>
+        <p>Meglio se disteso e ben illuminato, senza pieghe sopra i prezzi</p>
+        <label for="scontrino-input" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
+          Scatta foto scontrino
+        </label>
+      </div>
+
+      <div id="preview-state" style="display:none;">
+        <div class="preview-wrap">
+          <img id="preview-img" src="" alt="Foto scontrino">
+          <button class="retake-btn" id="retake-btn">Rifai foto</button>
+        </div>
+        <div id="analyzing-status" class="analyzing-status" style="display:none;">
+          <div class="spinner"></div>
+          <span id="analyzing-text">Leggo lo scontrino...</span>
+        </div>
+      </div>
+
+      <input type="file" id="scontrino-input" accept="image/*" capture="environment">
+    </div>
+
+    <div id="error-container"></div>
+    <p class="voice-unavailable-note" id="voice-unavailable-note" style="display:none;">🎤 Il microfono non è disponibile su questo browser — usa i pulsanti rapidi o la data</p>
+
+    <div id="results-container" style="display:none;">
+      <p class="results-header" id="results-count-label">Prodotti trovati</p>
+      <div id="results-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
+    <div class="add-all-bar" id="add-all-bar" style="display:none;">
+      <button class="btn btn-primary" id="add-all-btn">Aggiungi tutti allo Stipo</button>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  const scontrinoInput = document.getElementById('scontrino-input');
+  const captureEmptyState = document.getElementById('capture-empty-state');
+  const previewState = document.getElementById('preview-state');
+  const previewImg = document.getElementById('preview-img');
+  const retakeBtn = document.getElementById('retake-btn');
+  const analyzingStatus = document.getElementById('analyzing-status');
+  const analyzingText = document.getElementById('analyzing-text');
+  const errorContainer = document.getElementById('error-container');
+  const voiceUnavailableNote = document.getElementById('voice-unavailable-note');
+  const resultsContainer = document.getElementById('results-container');
+  const resultsCountLabel = document.getElementById('results-count-label');
+  const resultsList = document.getElementById('results-list');
+  const addAllBar = document.getElementById('add-all-bar');
+  const addAllBtn = document.getElementById('add-all-btn');
+
+  const CATEGORIES = [
+    { value: 'latticini', label: '🥛 Latticini' },
+    { value: 'carne', label: '🥩 Carne' },
+    { value: 'pesce', label: '🐟 Pesce' },
+    { value: 'frutta_verdura', label: '🥦 Frutta e verdura' },
+    { value: 'dispensa_secca', label: '🥫 Dispensa' },
+    { value: 'uova', label: '🥚 Uova' },
+    { value: 'surgelati', label: '🧊 Surgelati' },
+    { value: 'bevande', label: '🥤 Bevande' },
+    { value: 'altro', label: 'Altro' }
+  ];
+
+  const QUICK_DATES = [
+    { label: 'Pochi giorni', days: 3 },
+    { label: '1 settimana', days: 7 },
+    { label: '2 settimane', days: 14 },
+    { label: '1 mese', days: 30 },
+    { label: 'Lunga conservazione', days: 180 }
+  ];
+
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let detectedItems = [];
+
+  if (!SpeechRecognitionAPI) {
+    voiceUnavailableNote.style.display = 'block';
+  }
+
+  scontrinoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      previewImg.src = evt.target.result;
+      captureEmptyState.style.display = 'none';
+      previewState.style.display = 'block';
+      errorContainer.innerHTML = '';
+      resultsContainer.style.display = 'none';
+      addAllBar.style.display = 'none';
+      analyzeReceipt(evt.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  retakeBtn.addEventListener('click', () => {
+    scontrinoInput.value = '';
+    captureEmptyState.style.display = 'flex';
+    previewState.style.display = 'none';
+    analyzingStatus.style.display = 'none';
+    errorContainer.innerHTML = '';
+    resultsContainer.style.display = 'none';
+    addAllBar.style.display = 'none';
+  });
+
+  function showError(message) {
+    errorContainer.innerHTML = `<div class="error-banner">⚠️ ${message}</div>`;
+  }
+
+  function analyzeReceipt(imageDataUrl) {
+    analyzingStatus.style.display = 'flex';
+    analyzingText.textContent = 'Leggo lo scontrino...';
+    errorContainer.innerHTML = '';
+
+    Tesseract.recognize(imageDataUrl, 'ita', {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          analyzingText.textContent = `Leggo lo scontrino... ${Math.round(m.progress * 100)}%`;
+        }
+      }
+    }).then(({ data: { text } }) => {
+      analyzingStatus.style.display = 'none';
+      const names = extractReceiptItems(text);
+
+      if (names.length === 0) {
+        showError('Non sono riuscito a distinguere i prodotti su questo scontrino. Prova con una foto più nitida e ben distesa, oppure aggiungi i prodotti singolarmente.');
+        return;
+      }
+
+      detectedItems = names.map((name, idx) => ({
+        id: 'item_' + idx + '_' + Date.now(),
+        name,
+        category: 'altro',
+        date: ''
+      }));
+
+      renderResults();
+    }).catch((err) => {
+      console.error(err);
+      analyzingStatus.style.display = 'none';
+      showError('La lettura dello scontrino non è riuscita. Riprova con un\'altra foto o aggiungi i prodotti singolarmente.');
+    });
+  }
+
+  function extractReceiptItems(rawText) {
+    const excludeKeywords = [
+      'TOTALE', 'SUBTOTALE', 'CONTANTI', 'RESTO', 'IVA', 'SCONTRINO', 'SCONTO',
+      'CARTA', 'P.IVA', 'PARTITA', 'CASSA', 'OPERATORE', 'DATA', 'ORA',
+      'DOCUMENTO', 'FISCALE', 'COD', 'CLIENTE', 'PUNTI', 'FIDELITY', 'GRAZIE'
+    ];
+    const priceRegex = /(\d{1,3}[.,]\d{2})\s*(?:€|EUR)?\s*$/;
+
+    const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+    const items = [];
+
+    lines.forEach(line => {
+      const upper = line.toUpperCase();
+      if (excludeKeywords.some(k => upper.includes(k))) return;
+
+      const match = line.match(priceRegex);
+      if (!match) return;
+
+      let name = line.slice(0, match.index).trim();
+      name = name.replace(/^[\d*\s.]+/, '').trim();
+      name = name.replace(/\s{2,}/g, ' ');
+
+      if (name.length >= 3 && !/^\d+$/.test(name)) {
+        items.push(capitalizeWords(name));
+      }
+    });
+
+    return items.slice(0, 30);
+  }
+
+  function capitalizeWords(str) {
+    return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderResults() {
+    if (detectedItems.length === 0) {
+      resultsContainer.style.display = 'none';
+      addAllBar.style.display = 'none';
+      return;
+    }
+
+    resultsContainer.style.display = 'block';
+    addAllBar.style.display = 'block';
+    resultsCountLabel.textContent = `${detectedItems.length} prodotti trovati — imposta la scadenza per ciascuno`;
+
+    resultsList.innerHTML = detectedItems.map(item => `
+      <div class="item-card" data-id="${item.id}">
+        <div class="item-card-top">
+          <input type="text" class="item-name-input" value="${escapeHtml(item.name)}" data-field="name" data-id="${item.id}">
+          <button class="item-remove-btn" data-remove="${item.id}" aria-label="Rimuovi">✕</button>
+        </div>
+        <select class="item-category-select" data-field="category" data-id="${item.id}">
+          ${CATEGORIES.map(c => `<option value="${c.value}" ${c.value === item.category ? 'selected' : ''}>${c.label}</option>`).join('')}
+        </select>
+        <div class="quick-date-row" data-quickrow="${item.id}">
+          ${QUICK_DATES.map(q => `<button type="button" class="quick-date-chip" data-days="${q.days}" data-id="${item.id}">${q.label}</button>`).join('')}
+        </div>
+        <div class="date-mic-row">
+          <input type="date" data-field="date" data-id="${item.id}" value="${item.date || ''}">
+          ${SpeechRecognitionAPI ? `<button type="button" class="mic-btn" data-mic="${item.id}" aria-label="Detta la scadenza">🎤</button>` : ''}
+        </div>
+        <div class="mic-feedback" data-feedback="${item.id}" style="display:none;"></div>
+      </div>
+    `).join('');
+
+    attachResultHandlers();
+  }
+
+  function attachResultHandlers() {
+    resultsList.querySelectorAll('[data-field]').forEach(el => {
+      el.addEventListener('change', (e) => {
+        const id = e.target.dataset.id;
+        const field = e.target.dataset.field;
+        const item = detectedItems.find(i => i.id === id);
+        if (!item) return;
+        item[field] = e.target.value;
+        if (field === 'date') updateQuickChipSelection(id, null);
+      });
+    });
+
+    resultsList.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        detectedItems = detectedItems.filter(i => i.id !== btn.dataset.remove);
+        renderResults();
+      });
+    });
+
+    resultsList.querySelectorAll('.quick-date-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const id = chip.dataset.id;
+        const days = parseInt(chip.dataset.days, 10);
+        applyDateToItem(id, addDays(new Date(), days));
+        updateQuickChipSelection(id, days);
+      });
+    });
+
+    if (SpeechRecognitionAPI) {
+      resultsList.querySelectorAll('[data-mic]').forEach(btn => {
+        btn.addEventListener('click', () => startVoiceCapture(btn.dataset.mic, btn));
+      });
+    }
+  }
+
+  function updateQuickChipSelection(id, selectedDays) {
+    resultsList.querySelectorAll(`.quick-date-chip[data-id="${id}"]`).forEach(chip => {
+      chip.classList.toggle('selected', selectedDays !== null && parseInt(chip.dataset.days, 10) === selectedDays);
+    });
+  }
+
+  function addDays(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  function toISO(date) {
+    return date.toISOString().split('T')[0];
+  }
+
+  function applyDateToItem(id, dateObj) {
+    const item = detectedItems.find(i => i.id === id);
+    if (!item) return;
+    item.date = toISO(dateObj);
+    const input = resultsList.querySelector(`input[type="date"][data-id="${id}"]`);
+    if (input) input.value = item.date;
+  }
+
+  function startVoiceCapture(id, btn) {
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = 'it-IT';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const feedbackEl = resultsList.querySelector(`[data-feedback="${id}"]`);
+    btn.classList.add('listening');
+    feedbackEl.style.display = 'block';
+    feedbackEl.className = 'mic-feedback';
+    feedbackEl.textContent = '🎤 Ti ascolto...';
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      const parsedDate = parseSpokenDate(transcript);
+
+      if (parsedDate) {
+        applyDateToItem(id, parsedDate);
+        updateQuickChipSelection(id, null);
+        feedbackEl.className = 'mic-feedback';
+        feedbackEl.textContent = `🎤 "${transcript}" → ${formatDateIt(toISO(parsedDate))}`;
+      } else {
+        feedbackEl.className = 'mic-feedback error';
+        feedbackEl.textContent = `Non ho capito una data da "${transcript}" — usa i pulsanti o scrivila`;
+      }
+    };
+
+    recognition.onerror = () => {
+      feedbackEl.className = 'mic-feedback error';
+      feedbackEl.textContent = 'Non sono riuscito ad ascoltare, riprova';
+    };
+
+    recognition.onend = () => {
+      btn.classList.remove('listening');
+    };
+
+    recognition.start();
+  }
+
+  function formatDateIt(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function parseSpokenDate(text) {
+    const t = text.toLowerCase().trim();
+    const today = new Date();
+
+    if (/\boggi\b/.test(t)) return today;
+    if (/\bdomani\b/.test(t)) return addDays(today, 1);
+    if (/\bdopodomani\b/.test(t)) return addDays(today, 2);
+
+    const numberWords = {
+      'un': 1, 'uno': 1, 'una': 1, 'due': 2, 'tre': 3, 'quattro': 4, 'cinque': 5,
+      'sei': 6, 'sette': 7, 'otto': 8, 'nove': 9, 'dieci': 10, 'undici': 11, 'dodici': 12
+    };
+
+    function extractNumber(str) {
+      const digitMatch = str.match(/\d+/);
+      if (digitMatch) return parseInt(digitMatch[0], 10);
+      for (const word in numberWords) {
+        if (str.includes(word)) return numberWords[word];
+      }
+      return null;
+    }
+
+    let match = t.match(/(\d+|[a-zà]+)\s*giorn[oi]/);
+    if (match) {
+      const n = extractNumber(match[1]);
+      if (n) return addDays(today, n);
+    }
+
+    match = t.match(/(\d+|[a-zà]+)\s*settiman[ae]/);
+    if (match) {
+      const n = extractNumber(match[1]);
+      if (n) return addDays(today, n * 7);
+    }
+
+    match = t.match(/(\d+|[a-zà]+)\s*mes[ei]/);
+    if (match) {
+      const n = extractNumber(match[1]);
+      if (n) return addDays(today, n * 30);
+    }
+
+    const months = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    match = t.match(/(\d{1,2})\s*(?:di\s*)?(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const monthIdx = months.indexOf(match[2]);
+      let year = today.getFullYear();
+      const candidate = new Date(year, monthIdx, day);
+      if (candidate < today) candidate.setFullYear(year + 1);
+      return candidate;
+    }
+
+    match = t.match(/(\d{1,2})[\/\-.](\d{1,2})/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      let year = today.getFullYear();
+      const candidate = new Date(year, month, day);
+      if (candidate < today) candidate.setFullYear(year + 1);
+      return candidate;
+    }
+
+    return null;
+  }
+
+  async function loadProducts() {
+    try {
+      const result = await window.storage.get('dispensa-prodotti', false);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function saveProducts(products) {
+    try {
+      await window.storage.set('dispensa-prodotti', JSON.stringify(products), false);
+    } catch (e) {
+      console.error('Errore salvataggio', e);
+    }
+  }
+
+  addAllBtn.addEventListener('click', async () => {
+    const missing = detectedItems.filter(i => !i.name.trim() || !i.date);
+    resultsList.querySelectorAll('input[type="date"]').forEach(input => {
+      const item = detectedItems.find(i => i.id === input.dataset.id);
+      input.classList.toggle('item-date-missing', item && !item.date);
+    });
+
+    if (missing.length > 0) {
+      showError(`Manca la data per ${missing.length} prodotto/i evidenziato/i in rosso — completa con voce, pulsante rapido o data prima di continuare.`);
+      return;
+    }
+
+    addAllBtn.disabled = true;
+    addAllBtn.textContent = 'Aggiungo allo Stipo...';
+
+    const products = await loadProducts();
+    detectedItems.forEach(item => {
+      products.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        name: item.name.trim(),
+        category: item.category,
+        quantity: 1,
+        expiryDate: item.date,
+        location: 'frigo',
+        addedAt: new Date().toISOString()
+      });
+    });
+    await saveProducts(products);
+
+    window.location.href = 'lista-dispensa.html';
+  });
+})();
+</script>
+</body>
+</html>
