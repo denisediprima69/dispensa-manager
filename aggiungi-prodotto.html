@@ -190,6 +190,49 @@
   .btn-secondary { background: var(--accent-soft); color: var(--accent); }
   .btn-ghost { background: transparent; color: var(--text-muted); }
 
+  .live-scan-wrap {
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
+
+  #barcode-video {
+    width: 100%;
+    display: block;
+    max-height: 300px;
+    object-fit: cover;
+  }
+
+  .scan-target-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 78%;
+    height: 34%;
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
+    pointer-events: none;
+  }
+
+  .scan-hint {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    padding: 12px 16px 4px;
+  }
+
+  .error-banner-inline {
+    margin: 0 16px 10px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
   .manual-entry-link {
     background: none;
     border: none;
@@ -558,10 +601,23 @@
           </div>
           <h2>Scansiona il barcode</h2>
           <p>Se il prodotto ne ha uno, riconosco il nome in automatico. Facoltativo — puoi saltare</p>
-          <label for="barcode-input" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
-            Scansiona barcode
-          </label>
+          <button type="button" id="start-live-scan-btn" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
+            Apri fotocamera
+          </button>
+          <button type="button" id="use-static-photo-btn" class="manual-entry-link">Non funziona? Scatta una foto invece →</button>
           <button type="button" id="skip-barcode-btn" class="manual-entry-link">Salta, non ho il barcode →</button>
+        </div>
+
+        <div id="live-scan-view" style="display:none;">
+          <div class="live-scan-wrap">
+            <video id="barcode-video" autoplay playsinline muted></video>
+            <div class="scan-target-box"></div>
+          </div>
+          <p class="scan-hint">Inquadra il barcode, si legge da solo</p>
+          <div id="live-scan-error" class="error-banner-inline" style="display:none;"></div>
+          <div style="padding: 0 16px 16px;">
+            <button type="button" id="cancel-live-scan-btn" class="manual-entry-link">Annulla</button>
+          </div>
         </div>
 
         <div id="barcode-preview-state" style="display:none;">
@@ -738,6 +794,13 @@
   const skipBarcodeBtn = document.getElementById('skip-barcode-btn');
   const continueToStep2Btn = document.getElementById('continue-to-step2-btn');
   const backToBarcodeBtn = document.getElementById('back-to-barcode-btn');
+  const startLiveScanBtn = document.getElementById('start-live-scan-btn');
+  const useStaticPhotoBtn = document.getElementById('use-static-photo-btn');
+  const cancelLiveScanBtn = document.getElementById('cancel-live-scan-btn');
+  const liveScanView = document.getElementById('live-scan-view');
+  const barcodeVideo = document.getElementById('barcode-video');
+  const liveScanError = document.getElementById('live-scan-error');
+  let liveScanControls = null;
 
   manualEntryLink.addEventListener('click', () => {
     productNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -779,16 +842,78 @@
   }
 
   function goToStep1() {
+    stopLiveScan();
     step1Barcode.style.display = 'block';
     step2Date.style.display = 'none';
     stepIndicator.textContent = 'Passo 1 di 2 · Barcode (facoltativo)';
   }
 
-  skipBarcodeBtn.addEventListener('click', goToStep2);
-  continueToStep2Btn.addEventListener('click', goToStep2);
+  skipBarcodeBtn.addEventListener('click', () => { stopLiveScan(); goToStep2(); });
+  continueToStep2Btn.addEventListener('click', () => { stopLiveScan(); goToStep2(); });
   backToBarcodeBtn.addEventListener('click', goToStep1);
 
-  // --- Cattura foto barcode (step 1) ---
+  // --- Scansione live (metodo principale) ---
+  startLiveScanBtn.addEventListener('click', startLiveScan);
+  cancelLiveScanBtn.addEventListener('click', () => {
+    stopLiveScan();
+    liveScanView.style.display = 'none';
+    barcodeEmptyState.style.display = 'flex';
+  });
+
+  useStaticPhotoBtn.addEventListener('click', () => {
+    barcodeInput.click();
+  });
+
+  function startLiveScan() {
+    if (typeof ZXing === 'undefined') {
+      liveScanError.style.display = 'block';
+      liveScanError.textContent = 'Lettore barcode non disponibile su questo browser. Usa la foto statica o salta.';
+      return;
+    }
+
+    barcodeEmptyState.style.display = 'none';
+    liveScanView.style.display = 'block';
+    liveScanError.style.display = 'none';
+
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+
+    ZXing.BrowserCodeReader.listVideoInputDevices()
+      .then((devices) => {
+        if (!devices || devices.length === 0) {
+          throw new Error('Nessuna fotocamera trovata');
+        }
+        const rearDevice = devices.find(d => /back|rear|environment/i.test(d.label));
+        const deviceId = rearDevice ? rearDevice.deviceId : devices[devices.length - 1].deviceId;
+
+        codeReader.decodeFromVideoDevice(deviceId, barcodeVideo, (result, err, controls) => {
+          liveScanControls = controls;
+          if (result) {
+            controls.stop();
+            liveScanControls = null;
+            liveScanView.style.display = 'none';
+            barcodePreviewState.style.display = 'block';
+            barcodePreviewImg.style.display = 'none'; // niente foto statica da mostrare, era live
+            lookupOpenFoodFacts(result.getText());
+          }
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        liveScanView.style.display = 'none';
+        barcodeEmptyState.style.display = 'flex';
+        liveScanError.style.display = 'block';
+        liveScanError.textContent = 'Non riesco ad accedere alla fotocamera (permesso negato o non disponibile). Usa la foto statica o salta questo passaggio.';
+      });
+  }
+
+  function stopLiveScan() {
+    if (liveScanControls) {
+      liveScanControls.stop();
+      liveScanControls = null;
+    }
+  }
+
+  // --- Cattura foto barcode statica (fallback) ---
   barcodeInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -805,6 +930,7 @@
 
   barcodeRetakeBtn.addEventListener('click', () => {
     barcodeInput.value = '';
+    barcodePreviewImg.style.display = '';
     barcodeEmptyState.style.display = 'flex';
     barcodePreviewState.style.display = 'none';
   });
@@ -1201,8 +1327,10 @@
     ocrStatus.style.display = 'none';
 
     barcodeInput.value = '';
+    barcodePreviewImg.style.display = '';
     barcodeEmptyState.style.display = 'flex';
     barcodePreviewState.style.display = 'none';
+    liveScanView.style.display = 'none';
     goToStep1();
 
     productNameInput.value = '';

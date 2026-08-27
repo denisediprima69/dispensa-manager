@@ -122,6 +122,60 @@
     border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
   }
 
+  .live-scan-wrap {
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
+
+  #barcode-video {
+    width: 100%;
+    display: block;
+    max-height: 300px;
+    object-fit: cover;
+  }
+
+  .scan-target-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 78%;
+    height: 34%;
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
+    pointer-events: none;
+  }
+
+  .scan-hint {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    padding: 12px 16px 4px;
+  }
+
+  .error-banner-inline {
+    margin: 0 16px 10px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-radius: 10px;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .manual-entry-link {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px 0;
+    font-family: inherit;
+  }
+
   .status-row {
     display: flex; align-items: center; gap: 10px;
     padding: 14px 16px; font-size: 13px; color: var(--text-muted);
@@ -205,9 +259,22 @@
           <div class="capture-icon">⚖️</div>
           <h2>Scansiona il barcode della bilancia</h2>
           <p>Quello con peso e prezzo stampati, di solito sopra o sotto il codice a barre</p>
-          <label for="barcode-input" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
-            Scatta foto
-          </label>
+          <button type="button" id="start-live-scan-btn" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
+            Apri fotocamera
+          </button>
+          <button type="button" id="use-static-photo-btn" class="manual-entry-link">Non funziona? Scatta una foto invece →</button>
+        </div>
+
+        <div id="live-scan-view" style="display:none;">
+          <div class="live-scan-wrap">
+            <video id="barcode-video" autoplay playsinline muted></video>
+            <div class="scan-target-box"></div>
+          </div>
+          <p class="scan-hint">Inquadra il barcode, si legge da solo</p>
+          <div id="live-scan-error" class="error-banner-inline" style="display:none;"></div>
+          <div style="padding: 0 16px 16px;">
+            <button type="button" id="cancel-live-scan-btn" class="manual-entry-link">Annulla</button>
+          </div>
         </div>
 
         <div id="preview-state" style="display:none;">
@@ -231,7 +298,7 @@
           </div>
         </div>
 
-        <input type="file" id="barcode-input" accept="image/*" capture="environment">
+        <input type="file" id="barcode-input" accept="image/*" capture="environment" style="display:none;">
       </div>
 
       <div id="error-container" style="margin-top:14px;"></div>
@@ -328,6 +395,13 @@
   const gs1YesBtn = document.getElementById('gs1-yes-btn');
   const gs1NoBtn = document.getElementById('gs1-no-btn');
   const errorContainer = document.getElementById('error-container');
+  const startLiveScanBtn = document.getElementById('start-live-scan-btn');
+  const useStaticPhotoBtn = document.getElementById('use-static-photo-btn');
+  const cancelLiveScanBtn = document.getElementById('cancel-live-scan-btn');
+  const liveScanView = document.getElementById('live-scan-view');
+  const barcodeVideo = document.getElementById('barcode-video');
+  const liveScanError = document.getElementById('live-scan-error');
+  let liveScanControls = null;
 
   const dateInput = document.getElementById('date-input');
   const dateEmptyState = document.getElementById('date-empty-state');
@@ -372,6 +446,77 @@
     return `${d}/${m}/${y}`;
   }
 
+  // --- Scansione live (metodo principale) ---
+  startLiveScanBtn.addEventListener('click', startLiveScan);
+
+  cancelLiveScanBtn.addEventListener('click', () => {
+    stopLiveScan();
+    liveScanView.style.display = 'none';
+    captureEmptyState.style.display = 'flex';
+  });
+
+  useStaticPhotoBtn.addEventListener('click', () => {
+    barcodeInput.click();
+  });
+
+  function startLiveScan() {
+    if (typeof ZXing === 'undefined') {
+      liveScanError.style.display = 'block';
+      liveScanError.textContent = 'Lettore barcode non disponibile su questo browser. Usa la foto statica.';
+      return;
+    }
+
+    captureEmptyState.style.display = 'none';
+    liveScanView.style.display = 'block';
+    liveScanError.style.display = 'none';
+    errorContainer.innerHTML = '';
+
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+
+    ZXing.BrowserCodeReader.listVideoInputDevices()
+      .then((devices) => {
+        if (!devices || devices.length === 0) throw new Error('Nessuna fotocamera trovata');
+        const rearDevice = devices.find(d => /back|rear|environment/i.test(d.label));
+        const deviceId = rearDevice ? rearDevice.deviceId : devices[devices.length - 1].deviceId;
+
+        codeReader.decodeFromVideoDevice(deviceId, barcodeVideo, (result, err, controls) => {
+          liveScanControls = controls;
+          if (result) {
+            controls.stop();
+            liveScanControls = null;
+            liveScanView.style.display = 'none';
+            previewState.style.display = 'block';
+            previewImg.style.display = 'none';
+            gs1FoundPanel.style.display = 'none';
+
+            const gs1Date = extractGS1Date(result.getText());
+            if (gs1Date) {
+              foundGs1Date = gs1Date;
+              gs1DateText.textContent = formatDateIt(gs1Date);
+              gs1FoundPanel.style.display = 'block';
+            } else {
+              showError('Il codice non contiene una data leggibile — passiamo alla foto della data.');
+              goToStep2();
+            }
+          }
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        liveScanView.style.display = 'none';
+        captureEmptyState.style.display = 'flex';
+        liveScanError.style.display = 'block';
+        liveScanError.textContent = 'Non riesco ad accedere alla fotocamera (permesso negato o non disponibile). Usa la foto statica.';
+      });
+  }
+
+  function stopLiveScan() {
+    if (liveScanControls) {
+      liveScanControls.stop();
+      liveScanControls = null;
+    }
+  }
+
   barcodeInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -389,6 +534,7 @@
 
   retakeBtn.addEventListener('click', () => {
     barcodeInput.value = '';
+    previewImg.style.display = '';
     captureEmptyState.style.display = 'flex';
     previewState.style.display = 'none';
     scanStatus.style.display = 'none';
@@ -466,6 +612,7 @@
   });
 
   function goToStep2() {
+    stopLiveScan();
     stepIndicator.textContent = 'Passo 2 di 2 · Data di scadenza';
     step1.style.display = 'none';
     step2.style.display = 'block';
