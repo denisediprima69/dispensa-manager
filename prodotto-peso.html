@@ -473,7 +473,7 @@
 
     const codeReader = new ZXing.BrowserMultiFormatReader();
 
-    ZXing.BrowserCodeReader.listVideoInputDevices()
+    codeReader.listVideoInputDevices()
       .then((devices) => {
         if (!devices || devices.length === 0) throw new Error('Nessuna fotocamera trovata');
         const rearDevice = devices.find(d => /back|rear|environment/i.test(d.label));
