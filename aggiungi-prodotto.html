@@ -864,6 +864,22 @@
     barcodeInput.click();
   });
 
+  // Limita il lettore ai soli formati barcode reali (EAN/UPC/Code128), riduce i falsi positivi
+  function createBarcodeReader() {
+    if (ZXing.DecodeHintType && ZXing.BarcodeFormat) {
+      const hints = new Map();
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+        ZXing.BarcodeFormat.EAN_13,
+        ZXing.BarcodeFormat.EAN_8,
+        ZXing.BarcodeFormat.UPC_A,
+        ZXing.BarcodeFormat.UPC_E,
+        ZXing.BarcodeFormat.CODE_128
+      ]);
+      return new ZXing.BrowserMultiFormatReader(hints);
+    }
+    return new ZXing.BrowserMultiFormatReader();
+  }
+
   function startLiveScan() {
     if (typeof ZXing === 'undefined') {
       liveScanError.style.display = 'block';
@@ -875,14 +891,14 @@
     liveScanView.style.display = 'block';
     liveScanError.style.display = 'none';
 
-    const codeReader = new ZXing.BrowserMultiFormatReader();
+    const codeReader = createBarcodeReader();
 
     codeReader.decodeFromConstraints(
       { audio: false, video: { facingMode: 'environment' } },
       barcodeVideo,
       (result, err, controls) => {
         liveScanControls = controls;
-        if (result) {
+        if (result && result.getText().length >= 6) {
           controls.stop();
           liveScanControls = null;
           liveScanView.style.display = 'none';
@@ -962,7 +978,7 @@
       return;
     }
 
-    const codeReader = new ZXing.BrowserMultiFormatReader();
+    const codeReader = createBarcodeReader();
     codeReader.decodeFromImageUrl(imageDataUrl)
       .then((result) => {
         const barcode = result.getText();
