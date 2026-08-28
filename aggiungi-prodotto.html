@@ -877,33 +877,27 @@
 
     const codeReader = new ZXing.BrowserMultiFormatReader();
 
-    codeReader.listVideoInputDevices()
-      .then((devices) => {
-        if (!devices || devices.length === 0) {
-          throw new Error('Nessuna fotocamera trovata');
+    codeReader.decodeFromConstraints(
+      { audio: false, video: { facingMode: 'environment' } },
+      barcodeVideo,
+      (result, err, controls) => {
+        liveScanControls = controls;
+        if (result) {
+          controls.stop();
+          liveScanControls = null;
+          liveScanView.style.display = 'none';
+          barcodePreviewState.style.display = 'block';
+          barcodePreviewImg.style.display = 'none';
+          lookupOpenFoodFacts(result.getText());
         }
-        const rearDevice = devices.find(d => /back|rear|environment/i.test(d.label));
-        const deviceId = rearDevice ? rearDevice.deviceId : devices[devices.length - 1].deviceId;
-
-        codeReader.decodeFromVideoDevice(deviceId, barcodeVideo, (result, err, controls) => {
-          liveScanControls = controls;
-          if (result) {
-            controls.stop();
-            liveScanControls = null;
-            liveScanView.style.display = 'none';
-            barcodePreviewState.style.display = 'block';
-            barcodePreviewImg.style.display = 'none'; // niente foto statica da mostrare, era live
-            lookupOpenFoodFacts(result.getText());
-          }
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        liveScanView.style.display = 'none';
-        barcodeEmptyState.style.display = 'flex';
-        liveScanError.style.display = 'block';
-        liveScanError.textContent = 'Non riesco ad accedere alla fotocamera (permesso negato o non disponibile). Usa la foto statica o salta questo passaggio.';
-      });
+      }
+    ).catch((err) => {
+      console.error('Errore avvio fotocamera:', err);
+      liveScanView.style.display = 'none';
+      barcodeEmptyState.style.display = 'flex';
+      liveScanError.style.display = 'block';
+      liveScanError.textContent = 'Non riesco ad accedere alla fotocamera (' + (err && err.name ? err.name : 'errore sconosciuto') + '). Usa la foto statica o salta questo passaggio.';
+    });
   }
 
   function stopLiveScan() {

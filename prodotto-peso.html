@@ -473,41 +473,37 @@
 
     const codeReader = new ZXing.BrowserMultiFormatReader();
 
-    codeReader.listVideoInputDevices()
-      .then((devices) => {
-        if (!devices || devices.length === 0) throw new Error('Nessuna fotocamera trovata');
-        const rearDevice = devices.find(d => /back|rear|environment/i.test(d.label));
-        const deviceId = rearDevice ? rearDevice.deviceId : devices[devices.length - 1].deviceId;
+    codeReader.decodeFromConstraints(
+      { audio: false, video: { facingMode: 'environment' } },
+      barcodeVideo,
+      (result, err, controls) => {
+        liveScanControls = controls;
+        if (result) {
+          controls.stop();
+          liveScanControls = null;
+          liveScanView.style.display = 'none';
+          previewState.style.display = 'block';
+          previewImg.style.display = 'none';
+          gs1FoundPanel.style.display = 'none';
 
-        codeReader.decodeFromVideoDevice(deviceId, barcodeVideo, (result, err, controls) => {
-          liveScanControls = controls;
-          if (result) {
-            controls.stop();
-            liveScanControls = null;
-            liveScanView.style.display = 'none';
-            previewState.style.display = 'block';
-            previewImg.style.display = 'none';
-            gs1FoundPanel.style.display = 'none';
-
-            const gs1Date = extractGS1Date(result.getText());
-            if (gs1Date) {
-              foundGs1Date = gs1Date;
-              gs1DateText.textContent = formatDateIt(gs1Date);
-              gs1FoundPanel.style.display = 'block';
-            } else {
-              showError('Il codice non contiene una data leggibile — passiamo alla foto della data.');
-              goToStep2();
-            }
+          const gs1Date = extractGS1Date(result.getText());
+          if (gs1Date) {
+            foundGs1Date = gs1Date;
+            gs1DateText.textContent = formatDateIt(gs1Date);
+            gs1FoundPanel.style.display = 'block';
+          } else {
+            showError('Il codice non contiene una data leggibile — passiamo alla foto della data.');
+            goToStep2();
           }
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        liveScanView.style.display = 'none';
-        captureEmptyState.style.display = 'flex';
-        liveScanError.style.display = 'block';
-        liveScanError.textContent = 'Non riesco ad accedere alla fotocamera (permesso negato o non disponibile). Usa la foto statica.';
-      });
+        }
+      }
+    ).catch((err) => {
+      console.error('Errore avvio fotocamera:', err);
+      liveScanView.style.display = 'none';
+      captureEmptyState.style.display = 'flex';
+      liveScanError.style.display = 'block';
+      liveScanError.textContent = 'Non riesco ad accedere alla fotocamera (' + (err && err.name ? err.name : 'errore sconosciuto') + '). Usa la foto statica.';
+    });
   }
 
   function stopLiveScan() {
