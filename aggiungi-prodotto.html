@@ -570,6 +570,7 @@
 </style>
 <script src="storage-shim.js"></script>
 <script src="scanner.js"></script>
+<script src="date-reader.js"></script>
 </head>
 <body>
 <div class="app">
@@ -651,10 +652,23 @@
           </div>
           <h2>Fotografa la scadenza</h2>
           <p>Inquadra la data stampata sulla confezione, meglio se a fuoco e ben illuminata</p>
-          <label for="camera-input" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
-            Scatta foto
-          </label>
+          <button type="button" id="start-live-date-btn" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
+            Leggi la data con la fotocamera
+          </button>
+          <label for="camera-input" class="manual-entry-link" style="cursor:pointer;">Preferisco scattare una foto →</label>
           <button type="button" id="manual-entry-link" class="manual-entry-link">oppure inserisci manualmente ↓</button>
+        </div>
+
+        <div id="live-date-view" style="display:none;">
+          <div class="live-scan-wrap">
+            <video id="date-video" autoplay playsinline muted></video>
+            <div class="scan-target-box" style="height:44%;"></div>
+          </div>
+          <p class="scan-hint" id="live-date-hint">Avvio…</p>
+          <div id="live-date-error" class="error-banner-inline" style="display:none;"></div>
+          <div style="padding: 0 16px 16px;">
+            <button type="button" id="cancel-live-date-btn" class="manual-entry-link">Annulla, la scrivo io ↓</button>
+          </div>
         </div>
 
         <div id="preview-state" style="display:none;">
@@ -732,6 +746,14 @@
       <div class="field">
         <label for="product-date">Data di scadenza</label>
         <input type="date" id="product-date">
+        <input type="text" id="quick-date-input" inputmode="numeric" autocomplete="off" placeholder="Scrivi solo i numeri: 151226 oppure 1226 (mese/anno)" style="margin-top:8px;">
+        <div class="date-chip-row" id="quick-date-chips" style="margin-top:8px;">
+          <div class="date-chip" data-days="3">tra 3 giorni</div>
+          <div class="date-chip" data-days="7">tra 1 sett.</div>
+          <div class="date-chip" data-days="14">tra 2 sett.</div>
+          <div class="date-chip" data-days="30">tra 1 mese</div>
+        </div>
+        <p id="quick-date-feedback" style="font-size:12.5px;color:var(--text-muted);margin:6px 0 0;"></p>
       </div>
 
       <div class="field">
@@ -845,6 +867,8 @@
 
   function goToStep1() {
     stopLiveScan();
+    stopLiveDate();
+    liveDateView.style.display = 'none';
     step1Barcode.style.display = 'block';
     step2Date.style.display = 'none';
     stepIndicator.textContent = 'Passo 1 di 2 · Barcode (facoltativo)';
@@ -935,6 +959,71 @@
     barcodePreviewImg.style.display = '';
     barcodeEmptyState.style.display = 'flex';
     barcodePreviewState.style.display = 'none';
+  });
+
+  // --- Lettura live della data (step 2) ---
+  const startLiveDateBtn = document.getElementById('start-live-date-btn');
+  const cancelLiveDateBtn = document.getElementById('cancel-live-date-btn');
+  const liveDateView = document.getElementById('live-date-view');
+  const dateVideo = document.getElementById('date-video');
+  const liveDateHint = document.getElementById('live-date-hint');
+  const liveDateError = document.getElementById('live-date-error');
+  let stopDateScan = null;
+
+  function stopLiveDate() {
+    if (stopDateScan) { stopDateScan(); stopDateScan = null; }
+  }
+
+  startLiveDateBtn.addEventListener('click', () => {
+    captureEmptyState.style.display = 'none';
+    liveDateView.style.display = 'block';
+    liveDateError.style.display = 'none';
+    stopLiveDate();
+    stopDateScan = window.DateReader.startDateScan({
+      video: dateVideo,
+      onStatus: (m) => { liveDateHint.textContent = m; },
+      onError: (m) => {
+        stopDateScan = null;
+        liveDateHint.textContent = 'Lettura non avviata';
+        liveDateError.style.display = 'block';
+        liveDateError.textContent = m + ' Puoi scattare una foto o scrivere la data.';
+        captureEmptyState.style.display = 'flex';
+      },
+      onFound: (dates, snap) => {
+        stopDateScan = null;
+        liveDateView.style.display = 'none';
+        previewImg.src = snap;
+        previewState.style.display = 'block';
+        showDateSuggestions(dates);
+      }
+    });
+  });
+
+  cancelLiveDateBtn.addEventListener('click', () => {
+    stopLiveDate();
+    liveDateView.style.display = 'none';
+    captureEmptyState.style.display = 'flex';
+    productDateInput.focus();
+  });
+
+  // --- Scrittura veloce della data ---
+  const quickDateInput = document.getElementById('quick-date-input');
+  const quickDateFeedback = document.getElementById('quick-date-feedback');
+  function setQuickDate(iso) {
+    productDateInput.value = iso;
+    productDateInput.dispatchEvent(new Event('change'));
+    quickDateFeedback.textContent = '✓ ' + formatDateIt(iso);
+  }
+  quickDateInput.addEventListener('input', () => {
+    const iso = window.DateReader.parseDigits(quickDateInput.value);
+    if (iso) setQuickDate(iso);
+    else quickDateFeedback.textContent = quickDateInput.value ? 'Formato: ggmmaa (151226), ggmmaaaa o mmaa (1226)' : '';
+  });
+  document.querySelectorAll('#quick-date-chips .date-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      setQuickDate(window.DateReader.addDays(+chip.dataset.days));
+      quickDateInput.value = '';
+    });
   });
 
   // --- Cattura foto data (step 2) ---
@@ -1029,43 +1118,7 @@
 
   // --- Date extraction ---
   function extractDates(rawText) {
-    const found = [];
-    const patterns = [
-      // dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy
-      { regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/g, type: 'dmy' },
-      // dd/mm/yy
-      { regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})\b/g, type: 'dmy2' },
-      // mm/yyyy (solo mese/anno)
-      { regex: /\b(\d{1,2})[\/\-.](\d{4})\b/g, type: 'my' },
-      // yyyy-mm-dd
-      { regex: /\b(\d{4})-(\d{1,2})-(\d{1,2})\b/g, type: 'ymd' }
-    ];
-
-    patterns.forEach(({ regex, type }) => {
-      let match;
-      while ((match = regex.exec(rawText)) !== null) {
-        let iso = null;
-        if (type === 'dmy') {
-          const [, d, m, y] = match;
-          iso = toISO(y, m, d);
-        } else if (type === 'dmy2') {
-          const [, d, m, y] = match;
-          iso = toISO('20' + y, m, d);
-        } else if (type === 'my') {
-          const [, m, y] = match;
-          iso = toISO(y, m, '01');
-        } else if (type === 'ymd') {
-          const [, y, m, d] = match;
-          iso = toISO(y, m, d);
-        }
-        if (iso && isPlausibleDate(iso)) {
-          found.push(iso);
-        }
-      }
-    });
-
-    // dedup, mantieni ordine
-    return [...new Set(found)];
+    return window.DateReader.parse(rawText);
   }
 
   function toISO(y, m, d) {
