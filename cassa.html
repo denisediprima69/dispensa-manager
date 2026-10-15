@@ -9,6 +9,7 @@
 <script src="scanner.js?v=7"></script>
 <script src="date-reader.js?v=7"></script>
 <script src="product-rules.js?v=7"></script>
+<script src="date-picker.js?v=8"></script>
 <style>
   :root {
     --bg: #F7F7F5; --surface: #FFFFFF; --border: #E4E4E0; --text: #1C1C1A; --text-muted: #6B6B66;
@@ -72,6 +73,8 @@
   .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
   .fb { font-size: 12.5px; color: var(--text-muted); min-height: 16px; margin: 0; }
   .fb.ok { color: var(--accent); font-weight: 700; }
+  .date-btn { width: 100%; border: 1.5px dashed var(--warning); background: var(--warning-soft); color: var(--warning); border-radius: 12px; padding: 14px; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+  .date-btn.set { border: 1.5px solid var(--accent); background: var(--accent-soft); color: var(--accent); }
   .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
   .toast.show { opacity: 1; }
 </style>
@@ -108,7 +111,7 @@
 
     <!-- 3. Revisione -->
     <section id="view-review" style="display:none; flex-direction:column; gap:12px;">
-      <div class="note">📅 Scrivi la scadenza solo con i numeri: <b>0627</b> = giugno 2027, <b>151226</b> = 15/12/2026. Puoi lasciarla vuota: il prodotto finisce in «Da completare» e la aggiungi dopo.</div>
+      <div class="note">📅 Tocca <b>Scadenza</b> su ogni prodotto: di solito basta scegliere mese e anno (un tocco). Puoi anche saltarla: il prodotto finisce in «Da completare» e la aggiungi dopo.</div>
       <div id="review-list" style="display:flex; flex-direction:column; gap:12px;"></div>
     </section>
   </main>
@@ -245,10 +248,7 @@
         '<div class="pills">' + LOCATIONS.map((l) => '<div class="pill ' + (it.location === l ? 'sel' : '') + '" data-l="' + l + '" title="' + R.LOCATION_LABEL[l] + '">' + R.LOCATION_ICON[l] + '</div>').join('') + '</div></div>' +
         '<div class="lbl loc-lbl">Lo metto in: ' + R.LOCATION_LABEL[it.location] + '</div>' +
         '<select class="cat-in">' + catOptions(it.category) + '</select>' +
-        '<div><div class="lbl" style="margin-bottom:6px;">Scadenza</div>' +
-        '<input type="text" class="date-in" inputmode="numeric" autocomplete="off" placeholder="0627 oppure 151226">' +
-        '<p class="fb"></p>' +
-        '<div class="chips"><span class="chip" data-d="3">tra 3 giorni</span><span class="chip" data-d="7">1 sett.</span><span class="chip" data-d="14">2 sett.</span><span class="chip" data-d="30">1 mese</span></div></div>';
+        '<button type="button" class="date-btn"><span>📅 Scadenza</span><span class="dv">Scegli →</span></button>';
       const q = (s) => card.querySelector(s);
       q('.name-in').addEventListener('input', (e) => { it.name = e.target.value; e.target.classList.toggle('need', !it.name.trim()); });
       q('.minus').addEventListener('click', () => { if (it.qty > 1) { it.qty--; q('.qv').textContent = it.qty; } });
@@ -259,14 +259,17 @@
         q('.loc-lbl').textContent = 'Lo metto in: ' + R.LOCATION_LABEL[it.location];
       }));
       q('.cat-in').addEventListener('change', (e) => { it.category = e.target.value; });
-      const fb = q('.fb'), di = q('.date-in');
-      const setDate = (iso) => { it.date = iso; fb.textContent = iso ? '✓ ' + fmt(iso) : ''; fb.classList.toggle('ok', !!iso); };
-      di.addEventListener('input', () => {
-        if (!di.value.trim()) { setDate(null); return; }
-        const iso = window.DateReader.parseDigits(di.value);
-        if (iso) setDate(iso); else { it.date = null; fb.classList.remove('ok'); fb.textContent = 'Scrivi mese+anno (0627) o la data intera (151226)'; }
-      });
-      card.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => { setDate(window.DateReader.addDays(+c.dataset.d)); di.value = ''; }));
+      const dbtn = q('.date-btn');
+      const paint = () => {
+        dbtn.classList.toggle('set', !!it.date);
+        q('.dv').textContent = it.date ? fmt(it.date) + (it.dateExact ? '' : ' (fine mese)') : 'Scegli →';
+      };
+      paint();
+      dbtn.addEventListener('click', () => window.DatePicker.sheet({
+        title: 'Scadenza · ' + (it.name || 'prodotto'),
+        value: it.date,
+        onPick(iso, exact) { it.date = iso; it.dateExact = exact; paint(); }
+      }));
       $('review-list').appendChild(card);
     });
   }

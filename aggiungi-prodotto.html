@@ -602,6 +602,7 @@
 <script src="scanner.js?v=7"></script>
 <script src="date-reader.js?v=7"></script>
 <script src="product-rules.js?v=7"></script>
+<script src="date-picker.js?v=8"></script>
 </head>
 <body>
 <div class="app">
@@ -687,34 +688,7 @@
 
         <div id="date-wizard" class="wiz">
           <h2 class="wiz-title">Quando scade?</h2>
-          <div class="wiz-summary">
-            <button type="button" class="wiz-part" id="wp-year" data-step="year">Anno</button>
-            <span class="wiz-sep">/</span>
-            <button type="button" class="wiz-part" id="wp-month" data-step="month">Mese</button>
-            <span class="wiz-sep">/</span>
-            <button type="button" class="wiz-part" id="wp-day" data-step="day">Giorno</button>
-          </div>
-          <div id="wiz-body">
-            <p class="wiz-msg" id="wiz-msg"></p>
-            <p class="wiz-hint" id="wiz-hint"></p>
-            <div class="wiz-grid" id="wiz-grid"></div>
-            <button type="button" class="wiz-skip" id="wiz-skip-day" style="display:none;">Non c'è il giorno → vale fino a fine mese</button>
-          </div>
-          <div id="wiz-done" class="wiz-done" style="display:none;">
-            <div><div style="font-size:12px;color:var(--text-muted);">Scade il</div><b id="wiz-done-text">—</b></div>
-            <button type="button" class="btn btn-secondary" id="wiz-edit" style="width:auto;padding:10px 16px;">Modifica</button>
-          </div>
-          <div class="wiz-extra">
-            <label for="quick-date-input" style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Più veloce? Scrivi solo i numeri</label>
-            <input type="text" id="quick-date-input" inputmode="numeric" autocomplete="off" placeholder="0627 = giugno 2027 · 151226 = 15/12/2026">
-            <p id="quick-date-feedback" style="font-size:12.5px;color:var(--text-muted);margin:6px 0 0;"></p>
-            <div class="date-chip-row" id="quick-date-chips" style="margin-top:6px;">
-              <div class="date-chip" data-days="3">tra 3 giorni</div>
-              <div class="date-chip" data-days="7">tra 1 sett.</div>
-              <div class="date-chip" data-days="14">tra 2 sett.</div>
-              <div class="date-chip" data-days="30">tra 1 mese</div>
-            </div>
-          </div>
+          <div id="date-picker-mount"></div>
         </div>
 
         <div class="planb-wrap">
@@ -1090,120 +1064,21 @@
     productDateInput.focus();
   });
 
-  // --- Scrittura veloce della data ---
-  const quickDateInput = document.getElementById('quick-date-input');
-  const quickDateFeedback = document.getElementById('quick-date-feedback');
-  function setQuickDate(iso) {
-    productDateInput.value = iso;
-    productDateInput.dispatchEvent(new Event('change'));
-    quickDateFeedback.textContent = '✓ ' + formatDateIt(iso);
-  }
-  quickDateInput.addEventListener('input', () => {
-    const iso = window.DateReader.parseDigits(quickDateInput.value);
-    if (iso) setQuickDate(iso);
-    else quickDateFeedback.textContent = quickDateInput.value ? 'Formato: mmaa (0627), mmaaaa (062027), ggmmaa (151226)' : '';
-  });
-  document.querySelectorAll('#quick-date-chips .date-chip').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      setQuickDate(window.DateReader.addDays(+chip.dataset.days));
-      quickDateInput.value = '';
-    });
-  });
-
-  // --- Wizard data di scadenza: anno → mese → giorno ---
-  const MESI = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
-  const wizState = { y: null, m: null, d: null, step: 'year', noDay: false };
-  const wizMsg = document.getElementById('wiz-msg');
-  const wizHint = document.getElementById('wiz-hint');
-  const wizGrid = document.getElementById('wiz-grid');
-  const wizBody = document.getElementById('wiz-body');
-  const wizDone = document.getElementById('wiz-done');
-  const wizSkipDay = document.getElementById('wiz-skip-day');
-  const wizPart = { year: document.getElementById('wp-year'), month: document.getElementById('wp-month'), day: document.getElementById('wp-day') };
-  let wizSyncing = false;
-
-  function wizLastDay(y, m) { return new Date(y, m, 0).getDate(); }
-  function wizPad(n) { return String(n).padStart(2, '0'); }
-
-  function wizRender() {
-    wizPart.year.textContent = wizState.y || 'Anno';
-    wizPart.month.textContent = wizState.m ? MESI[wizState.m - 1] : 'Mese';
-    wizPart.day.textContent = wizState.noDay ? 'fine mese' : (wizState.d ? wizPad(wizState.d) : 'Giorno');
-    ['year', 'month', 'day'].forEach((k) => {
-      const filled = (k === 'year' && wizState.y) || (k === 'month' && wizState.m) || (k === 'day' && (wizState.d || wizState.noDay));
-      wizPart[k].classList.toggle('filled', !!filled);
-      wizPart[k].classList.toggle('active', wizState.step === k);
-    });
-
-    const complete = wizState.y && wizState.m && (wizState.d || wizState.noDay);
-    wizDone.style.display = complete ? 'flex' : 'none';
-    wizBody.style.display = complete ? 'none' : 'block';
-    if (complete) {
-      const day = wizState.noDay ? wizLastDay(wizState.y, wizState.m) : wizState.d;
-      const iso = wizState.y + '-' + wizPad(wizState.m) + '-' + wizPad(day);
-      document.getElementById('wiz-done-text').textContent = formatDateIt(iso) + (wizState.noDay ? ' (fine mese)' : '');
-      wizSyncing = true;
+  // --- Selettore data a un tocco ---
+  let pickerSyncing = false;
+  const datePicker = window.DatePicker.mount(document.getElementById('date-picker-mount'), {
+    onPick(iso) {
+      pickerSyncing = true;
       productDateInput.value = iso;
       productDateInput.dispatchEvent(new Event('change'));
-      wizSyncing = false;
-      return;
+      pickerSyncing = false;
     }
-
-    wizGrid.innerHTML = '';
-    wizSkipDay.style.display = 'none';
-    const now = new Date();
-    if (wizState.step === 'year') {
-      wizMsg.textContent = '1 · Aggiungi l\'ANNO';
-      wizHint.textContent = 'Guarda la data stampata sulla confezione. Quale anno è scritto?';
-      wizGrid.className = 'wiz-grid cols-3';
-      for (let i = 0; i < 6; i++) {
-        const y = now.getFullYear() + i;
-        wizGrid.appendChild(wizBtn(String(y), () => { wizState.y = y; wizState.step = wizState.m ? (wizState.d || wizState.noDay ? 'year' : 'day') : 'month'; wizRender(); }));
-      }
-    } else if (wizState.step === 'month') {
-      wizMsg.textContent = '2 · Aggiungi il MESE';
-      wizHint.textContent = 'Se sulla confezione c\'è scritto 06-2027, il mese è Giu.';
-      wizGrid.className = 'wiz-grid cols-4';
-      MESI.forEach((nome, i) => {
-        const b = wizBtn(nome, () => { wizState.m = i + 1; if (wizState.d && wizState.d > wizLastDay(wizState.y, wizState.m)) wizState.d = null; wizState.step = 'day'; wizRender(); }, true);
-        if (wizState.y === now.getFullYear() && i + 1 < now.getMonth() + 1 - 1) b.disabled = true;
-        wizGrid.appendChild(b);
-      });
-    } else {
-      wizMsg.textContent = '3 · Aggiungi il GIORNO';
-      wizHint.textContent = 'Se non c\'è il giorno (solo mese e anno), tocca il pulsante qui sotto.';
-      wizGrid.className = 'wiz-grid cols-7';
-      for (let d = 1; d <= wizLastDay(wizState.y, wizState.m); d++) {
-        wizGrid.appendChild(wizBtn(String(d), () => { wizState.d = d; wizState.noDay = false; wizRender(); }, true));
-      }
-      wizSkipDay.style.display = 'block';
-    }
-  }
-
-  function wizBtn(label, onClick, small) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'wiz-btn' + (small ? ' small' : ''); b.textContent = label;
-    b.addEventListener('click', onClick);
-    return b;
-  }
-
-  wizSkipDay.addEventListener('click', () => { wizState.noDay = true; wizState.d = null; wizRender(); });
-  document.getElementById('wiz-edit').addEventListener('click', () => { wizState.step = 'year'; wizState.y = null; wizState.m = null; wizState.d = null; wizState.noDay = false; wizRender(); });
-  Object.keys(wizPart).forEach((k) => wizPart[k].addEventListener('click', () => {
-    if (k === 'month' && !wizState.y) return;
-    if (k === 'day' && !(wizState.y && wizState.m)) return;
-    if (k === 'day') { wizState.d = null; wizState.noDay = false; }
-    wizState.step = k; wizRender();
-  }));
-
-  // sincronizza il wizard quando la data cambia da fuori (foto, scrittura veloce, modifica manuale)
-  productDateInput.addEventListener('change', () => {
-    if (wizSyncing || !productDateInput.value) return;
-    const [y, m, d] = productDateInput.value.split('-').map(Number);
-    wizState.y = y; wizState.m = m; wizState.d = d; wizState.noDay = false; wizState.step = 'year';
-    wizRender();
   });
-  wizRender();
+  // la data può cambiare anche da fuori (lettura con fotocamera, modifica manuale)
+  productDateInput.addEventListener('change', () => {
+    if (pickerSyncing) return;
+    datePicker.setValue(productDateInput.value || null);
+  });
 
   document.getElementById('toggle-planb-btn').addEventListener('click', () => {
     const open = captureEmptyState.style.display === 'none';
@@ -1656,7 +1531,7 @@
     productDateInput.value = '';
     currentBarcode = null;
     productPhoto = null; nodbThumb.style.display = 'none'; nodbSuggestions.innerHTML = ''; nodbStatus.textContent = ''; nodbName.value = ''; hideNoDb();
-    wizState.y = wizState.m = wizState.d = null; wizState.noDay = false; wizState.step = 'year'; wizRender();
+    datePicker.reset();
     document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));
     document.querySelector('.location-pill[data-location="frigo"]').classList.add('selected');
     selectedLocation = 'frigo';
