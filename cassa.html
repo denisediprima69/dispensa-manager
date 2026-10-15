@@ -8,7 +8,7 @@
 <script src="storage-shim.js?v=7"></script>
 <script src="scanner.js?v=7"></script>
 <script src="date-reader.js?v=7"></script>
-<script src="product-rules.js?v=8"></script>
+<script src="product-rules.js?v=9"></script>
 <script src="date-picker.js?v=9"></script>
 <style>
   :root {
@@ -196,16 +196,23 @@
     const existing = items.find((x) => x.code === code);
     if (existing) {
       existing.qty++;
+      if (existing.chk && existing.chk.level !== 'none') R.showDietAlert(existing.name, existing.chk);
       flash('+1 ' + (existing.name || 'prodotto nuovo') + ' (×' + existing.qty + ')');
       renderScanList();
       return;
     }
-    const it = { code, name: '', category: 'altro', location: 'dispensa', qty: 1, date: null, loading: true };
+    const it = { code, name: '', category: 'altro', location: 'dispensa', qty: 1, date: null, loading: true, weight: '', diet: null, dietTags: [], dietLevel: 'none' };
     items.push(it);
     flash('Bip! Riconosco il prodotto…');
     renderScanList();
     R.lookup(code).then((info) => {
       it.name = info.name; it.category = info.category; it.location = info.location; it.loading = false; it.source = info.source;
+      it.weight = info.weight || ''; it.diet = info.diet || null;
+      R.dietCheck(info).then((chk) => {
+        it.dietTags = chk.tags; it.dietLevel = chk.level; it.chk = chk;
+        R.showDietAlert(info.name, chk);
+        renderScanList();
+      });
       flash(info.name ? '✓ ' + info.name + ' → ' + R.LOCATION_LABEL[info.location] : 'Prodotto nuovo: lo nomini alla fine');
       renderScanList();
     });
@@ -254,6 +261,8 @@
         '<div class="row"><div class="stepper"><button type="button" class="minus">−</button><b class="qv">' + it.qty + '</b><button type="button" class="plus">+</button></div>' +
         '<div class="pills">' + LOCATIONS.map((l) => '<div class="pill ' + (it.location === l ? 'sel' : '') + '" data-l="' + l + '" title="' + R.LOCATION_LABEL[l] + '">' + R.LOCATION_ICON[l] + '</div>').join('') + '</div></div>' +
         '<div class="lbl loc-lbl">Lo metto in: ' + R.LOCATION_LABEL[it.location] + '</div>' +
+        (it.dietLevel && it.dietLevel !== 'none' ? '<div class="lbl" style="color:' + (it.dietLevel === 'stop' ? 'var(--danger)' : 'var(--warning)') + ';font-weight:700;">⚠️ ' + esc(it.dietTags.join(', ')) + '</div>' : '') +
+        '<input type="text" class="weight-in" placeholder="Peso (es. 500 g)" maxlength="24" value="' + esc(it.weight).replace(/"/g, '&quot;') + '" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font:inherit;font-size:13.5px;margin:6px 0;">' +
         '<select class="cat-in">' + catOptions(it.category) + '</select>' +
         '<button type="button" class="date-btn"><span>📅 Scadenza</span><span class="dv">Scegli →</span></button>';
       const q = (s) => card.querySelector(s);
@@ -265,6 +274,7 @@
         card.querySelectorAll('.pill').forEach((x) => x.classList.toggle('sel', x === p));
         q('.loc-lbl').textContent = 'Lo metto in: ' + R.LOCATION_LABEL[it.location];
       }));
+      q('.weight-in').addEventListener('input', (e) => { it.weight = e.target.value; });
       q('.cat-in').addEventListener('change', (e) => { it.category = e.target.value; });
       const dbtn = q('.date-btn');
       const paint = () => {
@@ -299,11 +309,12 @@
       products.push({
         id: (now + i).toString(36) + Math.random().toString(36).slice(2, 7),
         name: it.name.trim(), category: it.category, quantity: it.qty,
-        expiryDate: it.date || null, location: it.location, addedAt: new Date().toISOString()
+        expiryDate: it.date || null, location: it.location, addedAt: new Date().toISOString(),
+        ...(it.weight && it.weight.trim() ? { weight: it.weight.trim() } : {}), ...(it.diet ? { diet: it.diet } : {})
       });
     });
     try { await window.storage.set('dispensa-prodotti', JSON.stringify(products), false); } catch (e) { toast('Errore nel salvataggio'); $('save-btn').disabled = false; return; }
-    await Promise.all(items.map((it) => R.remember(it.code, { name: it.name.trim(), category: it.category, location: it.location, src: 'user' })));
+    await Promise.all(items.map((it) => R.remember(it.code, { name: it.name.trim(), category: it.category, location: it.location, src: 'user', weight: it.weight, diet: it.diet })));
     toast('✓ ' + total() + ' prodotti nello Stipo');
     setTimeout(() => { location.href = 'lista-dispensa.html'; }, 700);
   }

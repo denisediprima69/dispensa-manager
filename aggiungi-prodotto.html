@@ -601,7 +601,7 @@
 <script src="storage-shim.js?v=7"></script>
 <script src="scanner.js?v=7"></script>
 <script src="date-reader.js?v=7"></script>
-<script src="product-rules.js?v=8"></script>
+<script src="product-rules.js?v=9"></script>
 <script src="date-picker.js?v=9"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -807,6 +807,11 @@
       </div>
 
       <div class="field">
+        <label for="product-weight">Peso / contenuto <span style="font-weight:500;color:var(--text-muted);">(compilato in automatico se lo trovo)</span></label>
+        <input type="text" id="product-weight" placeholder="es. 500 g, 1 L" maxlength="24">
+      </div>
+
+      <div class="field">
         <label for="product-date">Data di scadenza</label>
         <input type="date" id="product-date">
       </div>
@@ -890,6 +895,8 @@
   const newCategoryInput = document.getElementById('new-category-input');
   const newCategorySaveBtn = document.getElementById('new-category-save');
   const productQtyInput = document.getElementById('product-qty');
+  const productWeightInput = document.getElementById('product-weight');
+  let currentDiet = null;
   const locationRow = document.getElementById('location-row');
   const saveBtn = document.getElementById('save-btn');
   const toast = document.getElementById('toast');
@@ -1010,6 +1017,9 @@
   });
 
   barcodeRetakeBtn.addEventListener('click', () => {
+    productWeightInput.value = '';
+    currentDiet = null;
+    const _db = document.getElementById('diet-banner'); if (_db) _db.remove();
     barcodeInput.value = '';
     barcodePreviewImg.style.display = '';
     barcodeEmptyState.style.display = 'flex';
@@ -1218,6 +1228,9 @@
     window.ProductRules.lookup(barcode).then((info) => {
       // posizione e categoria scelte in automatico (modificabili più sotto)
       setLocation(info.location);
+      currentDiet = info.diet || null;
+      if (info.weight && !productWeightInput.value.trim()) productWeightInput.value = info.weight;
+      window.ProductRules.dietCheck(info).then((chk) => window.ProductRules.showDietAlert(info.name, chk));
       if (productCategoryInput.querySelector('option[value="' + info.category + '"]')) productCategoryInput.value = info.category;
       const where = window.ProductRules.LOCATION_ICON[info.location] + ' ' + window.ProductRules.LOCATION_LABEL[info.location];
       if (info.name) {
@@ -1504,8 +1517,11 @@
       addedAt: new Date().toISOString()
     };
     if (productPhoto) product.photo = productPhoto;
+    const weight = productWeightInput.value.trim();
+    if (weight) product.weight = weight;
+    if (currentDiet) product.diet = currentDiet;
 
-    if (currentBarcode) window.ProductRules.remember(currentBarcode, { name, category: product.category, location: product.location, src: 'user' });
+    if (currentBarcode) window.ProductRules.remember(currentBarcode, { name, category: product.category, location: product.location, src: 'user', weight, diet: currentDiet });
     saveBtn.disabled = true;
     const products = await loadProducts();
     products.push(product);

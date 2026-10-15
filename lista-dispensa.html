@@ -651,6 +651,10 @@
       </div>
     </div>
     <div class="modal-field">
+      <label for="edit-weight">Peso / contenuto</label>
+      <input type="text" id="edit-weight" placeholder="es. 500 g" maxlength="24">
+    </div>
+    <div class="modal-field">
       <label for="edit-date">Data di scadenza</label>
       <input type="date" id="edit-date">
     </div>
@@ -695,6 +699,7 @@
   const editNewCategoryInput = document.getElementById('edit-new-category-input');
   const editNewCategorySave = document.getElementById('edit-new-category-save');
   const editQty = document.getElementById('edit-qty');
+  const editWeight = document.getElementById('edit-weight');
   const editDate = document.getElementById('edit-date');
   const editLocation = document.getElementById('edit-location');
   let editingId = null;
@@ -885,10 +890,19 @@
     return div.innerHTML;
   }
 
+  let dietPrefsCache = {};
+  function dietTag(p) {
+    const d = p.diet; if (!d) return '';
+    const t = [];
+    if (dietPrefsCache.celiachia && (d.gluten === 'si' || d.gluten === 'tracce')) t.push('glutine');
+    if (dietPrefsCache.lattosio && (d.lattosio === 'si' || d.lattosio === 'tracce')) t.push('lattosio');
+    return t.length ? ` <span style="font-size:11px;font-weight:700;color:var(--danger);">⚠️ ${t.join(', ')}</span>` : '';
+  }
+
   function productRowHTML(p) {
     const pending = !p.expiryDate;
     const badge = pending ? { cls: 'pending', text: 'Da completare' } : badgeInfo(daysUntil(p.expiryDate));
-    const qtyText = p.quantity > 1 ? ` · ${p.quantity} pezzi` : '';
+    const qtyText = (p.quantity > 1 ? ` · ${p.quantity} pezzi` : '') + (p.weight ? ` · ${escapeHtml(p.weight)}` : '');
     return `
       <div class="product-row" data-id="${p.id}">
         <button class="check-btn" aria-label="Consuma 1 unità">
@@ -896,7 +910,7 @@
         </button>
         ${p.photo ? `<img class="thumb" src="${p.photo}" alt="">` : ''}
         <div class="product-info" data-id="${p.id}">
-          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="name">${escapeHtml(p.name)}${dietTag(p)}</div>
           <div class="meta">${pending ? 'Tocca per aggiungere la scadenza' : formatDateIt(p.expiryDate)}${qtyText}</div>
         </div>
         <div class="badge ${badge.cls}"><span class="status-dot ${badge.cls}" style="display:inline-block; margin-right:5px; vertical-align:middle;"></span>${badge.text}</div>
@@ -906,6 +920,7 @@
   }
 
   async function render() {
+    try { const r = await window.storage.get('preferenze-dieta', false); dietPrefsCache = r ? JSON.parse(r.value) : {}; } catch (e) { dietPrefsCache = {}; }
     const products = await loadProducts();
 
     totalCountEl.textContent = products.length;
@@ -1109,6 +1124,7 @@
     editName.value = product.name;
     editCategory.value = product.category || 'altro';
     editQty.value = product.quantity || 1;
+    editWeight.value = product.weight || '';
     editDate.value = product.expiryDate || '';
     editLocation.value = product.location;
     editNewCategoryRow.style.display = 'none';
@@ -1143,6 +1159,7 @@
       name,
       category: editCategory.value,
       quantity: parseInt(editQty.value, 10) || 1,
+      weight: editWeight.value.trim() || undefined,
       expiryDate: date,
       location: editLocation.value
     };

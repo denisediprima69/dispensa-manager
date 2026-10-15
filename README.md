@@ -62,3 +62,9 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 3. Distinzione "Scade il" vs "Da consumarsi preferibilmente entro"
 4. Statistiche estese / storico
 5. "Cosa posso cucinare?" con i prodotti in scadenza
+
+## Peso e alimentazione (celiachia / lattosio)
+- **Peso**: letto da Open Food Facts (`quantity`) e precompilato; modificabile in aggiungi-prodotto, cassa (revisione) e nella scheda prodotto. Salvato in `product.weight` (testo libero, es. "500 g").
+- **Impostazioni → Alimentazione**: due interruttori (celiachia, lattosio), salvati in `preferenze-dieta`.
+- **Avviso in scansione**: `ProductRules.dietCheck` usa allergeni, tracce, etichette (senza glutine / senza lattosio) e ingredienti di Open Food Facts. Banner rosso con doppio suono grave + vibrazione se contiene; arancione per tracce; "da verificare" se il dato manca. Funziona sia in "Alla cassa" (anche alla riscansione) sia nel prodotto singolo. L'esito è salvato in `product.diet` e in `prodotti-noti`, quindi vale anche per i prodotti già visti. Nella lista compare "⚠️ glutine/lattosio".
+- I dati di Open Food Facts possono essere incompleti: l'app invita sempre a leggere l'etichetta.

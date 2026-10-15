@@ -306,6 +306,29 @@
     </section>
 
     <section>
+      <p class="section-label">Alimentazione</p>
+      <div class="card">
+        <div class="setting-row">
+          <div>
+            <div class="label-text">Celiachia</div>
+            <div class="label-sub">Ti avviso se un prodotto scansionato contiene glutine</div>
+          </div>
+          <button class="toggle" id="celiac-toggle"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="label-text">Intolleranza al lattosio</div>
+            <div class="label-sub">Ti avviso se contiene latte o lattosio</div>
+          </div>
+          <button class="toggle" id="lactose-toggle"></button>
+        </div>
+        <div class="notice-banner">
+          Gli avvisi usano i dati di Open Food Facts, che possono essere incompleti o non aggiornati. Per sicurezza leggi sempre l'etichetta sulla confezione.
+        </div>
+      </div>
+    </section>
+
+    <section>
       <p class="section-label">Notifiche</p>
       <div class="card">
         <div class="setting-row">
@@ -533,11 +556,33 @@
     }
   });
 
+  // --- Alimentazione (celiachia / lattosio) ---
+  const celiacToggle = document.getElementById('celiac-toggle');
+  const lactoseToggle = document.getElementById('lactose-toggle');
+  const DIET_KEY = 'preferenze-dieta';
+  async function loadDiet() {
+    try { const r = await window.storage.get(DIET_KEY, false); return r ? JSON.parse(r.value) : {}; } catch (e) { return {}; }
+  }
+  async function initDiet() {
+    const d = await loadDiet();
+    celiacToggle.classList.toggle('on', !!d.celiachia);
+    lactoseToggle.classList.toggle('on', !!d.lattosio);
+  }
+  [[celiacToggle, 'celiachia'], [lactoseToggle, 'lattosio']].forEach(([btn, key]) => {
+    btn.addEventListener('click', async () => {
+      const on = btn.classList.toggle('on');
+      const d = await loadDiet();
+      d[key] = on;
+      try { await window.storage.set(DIET_KEY, JSON.stringify(d), false); } catch (e) { console.error('Errore salvataggio dieta', e); }
+    });
+  });
+
   // --- Init ---
   renderDefaultCategories();
   renderCustomCategories();
   initNotifPrefs();
   initTipToggle();
+  initDiet();
 })();
 </script>
 </body>
