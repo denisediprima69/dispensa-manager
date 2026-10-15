@@ -72,11 +72,15 @@
 
   // opts: { video, onStatus, onError, onFound(isoDates, snapshotDataUrl) } -> stop()
   function startDateScan(opts) {
-    const video = opts.video, status = opts.onStatus || function () {};
+    const VERSION = 'v6';
+    const video = opts.video, rawStatus = opts.onStatus || function () {};
+    const status = (m) => rawStatus('[' + VERSION + '] ' + m);
     let stopped = false, stream = null, worker = null, timer = null;
     const recent = [];
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const withTimeout = (pr, ms) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error('lettura troppo lenta')), ms))]);
 
     function stop() {
       stopped = true;
@@ -164,7 +168,7 @@
 
       status('Preparo il lettore della data…');
       try {
-        worker = await Tesseract.createWorker('eng');
+        worker = await Promise.race([Tesseract.createWorker('eng'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout caricamento (rete lenta o bloccata)')), 25000))]);
         await worker.setParameters({
           tessedit_char_whitelist: '0123456789/.-: ',
           tessedit_pageseg_mode: '6'
@@ -181,7 +185,7 @@
         status('Leggo…');
         try {
           const snap = grab();
-          const { data } = await worker.recognize(canvas);
+          const { data } = await withTimeout(worker.recognize(canvas), 10000);
           const dates = parse(data.text);
           if (dates.length) { stop(); opts.onFound(dates, snap); return; }
           status('Nessuna data letta' + (clean(data.text) ? ' (vedo: «' + clean(data.text) + '»)' : '') + ' — avvicinati un po\' o cambia luce');
@@ -194,7 +198,7 @@
         try {
           const snap = grab();
           if (snap) {
-            const { data } = await worker.recognize(canvas);
+            const { data } = await withTimeout(worker.recognize(canvas), 10000);
             const dates = parse(data.text);
             if (!dates.length) {
               const slow = Date.now() - startedAt > 12000;
@@ -212,8 +216,8 @@
               return;
             }
           }
-        } catch (e) { /* fotogramma non leggibile */ }
-        timer = setTimeout(loop, 300);
+        } catch (e) { status('Errore lettura: ' + (e && e.message ? e.message : e)); }
+        timer = setTimeout(loop, 500);
       };
       loop();
     }).catch((err) => fail('Non riesco ad accedere alla fotocamera (' + (err && err.name ? err.name : 'errore') + ').'));
