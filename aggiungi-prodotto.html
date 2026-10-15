@@ -750,7 +750,7 @@
       <div class="field">
         <label for="product-date">Data di scadenza</label>
         <input type="date" id="product-date">
-        <input type="text" id="quick-date-input" inputmode="numeric" autocomplete="off" placeholder="Scrivi solo i numeri: 151226 oppure 1226 (mese/anno)" style="margin-top:8px;">
+        <input type="text" id="quick-date-input" inputmode="numeric" autocomplete="off" placeholder="Scrivi mese e anno: 0627 · oppure data intera: 151226" style="margin-top:8px;">
         <div class="date-chip-row" id="quick-date-chips" style="margin-top:8px;">
           <div class="date-chip" data-days="3">tra 3 giorni</div>
           <div class="date-chip" data-days="7">tra 1 sett.</div>
@@ -1031,7 +1031,7 @@
   quickDateInput.addEventListener('input', () => {
     const iso = window.DateReader.parseDigits(quickDateInput.value);
     if (iso) setQuickDate(iso);
-    else quickDateFeedback.textContent = quickDateInput.value ? 'Formato: ggmmaa (151226), ggmmaaaa o mmaa (1226)' : '';
+    else quickDateFeedback.textContent = quickDateInput.value ? 'Formato: mmaa (0627), mmaaaa (062027), ggmmaa (151226)' : '';
   });
   document.querySelectorAll('#quick-date-chips .date-chip').forEach((chip) => {
     chip.addEventListener('click', () => {

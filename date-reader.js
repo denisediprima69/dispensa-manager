@@ -40,6 +40,17 @@
       const mo = +m[2], y = fullYear(m[3]);
       if (mo >= 1 && mo <= 12 && y >= 2020) add(iso(y, mo, lastDay(y, mo)));
     }
+    // OCR a puntini: separatori persi o scambiati ("06 2027", "062027", "06_2027")
+    if (!found.length) {
+      t.split(/\n+/).forEach((line) => {
+        const digits = line.replace(/\D/g, '');
+        let mm;
+        if ((mm = /(0[1-9]|1[0-2])(20[2-3]\d)/.exec(digits)) && digits.length <= 10) {
+          const y = +mm[2], mo = +mm[1]; add(iso(y, mo, lastDay(y, mo)));
+        }
+        if ((mm = /(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])(20[2-3]\d)/.exec(digits))) add(iso(mm[3], mm[2], mm[1]));
+      });
+    }
     return [...new Set(found)].sort();
   }
 
@@ -49,7 +60,8 @@
     let r = null;
     if (d.length === 8) r = iso(d.slice(4), d.slice(2, 4), d.slice(0, 2));
     else if (d.length === 6) r = iso(2000 + +d.slice(4), d.slice(2, 4), d.slice(0, 2));
-    else if (d.length === 4) { const mo = +d.slice(0, 2), y = 2000 + +d.slice(2); r = iso(y, mo, lastDay(y, mo)); }
+    if (!r && d.length === 6) { const mo = +d.slice(0, 2), y = +d.slice(2); if (y >= 2020 && y < 2100) r = iso(y, mo, lastDay(y, mo)); }
+    if (!r && d.length === 4) { const mo = +d.slice(0, 2), y = 2000 + +d.slice(2); r = iso(y, mo, lastDay(y, mo)); }
     return r;
   }
 
@@ -161,6 +173,7 @@
       if (stopped) { stop(); return; }
       status('Inquadra la data stampata, tieni fermo il telefono');
 
+      const startedAt = Date.now();
       const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim().slice(0, 50);
       stop.readNow = async () => {
         if (stopped || !worker) return;
@@ -183,7 +196,10 @@
           if (snap) {
             const { data } = await worker.recognize(canvas);
             const dates = parse(data.text);
-            if (!dates.length && clean(data.text)) status('Sto leggendo: «' + clean(data.text) + '»');
+            if (!dates.length) {
+              const slow = Date.now() - startedAt > 12000;
+              status(slow ? 'Non riesco a leggerla: usa “Preferisco scriverla io” e digita es. 0627' : (clean(data.text) ? 'Sto leggendo: «' + clean(data.text) + '»' : 'Inquadra la data dentro il riquadro'));
+            }
             recent.push(dates); if (recent.length > 4) recent.shift();
             // conferma: la stessa data letta in almeno 2 fotogrammi recenti
             const count = {};
