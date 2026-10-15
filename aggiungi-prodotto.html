@@ -244,6 +244,36 @@
     font-family: inherit;
   }
 
+
+  /* --- Wizard data --- */
+  .wiz { padding: 18px 16px 8px; }
+  .wiz-title { font-size: 18px; margin: 0 0 12px; }
+  .wiz-summary { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .wiz-part { flex: 1; border: 1.5px dashed var(--border); background: var(--surface); border-radius: 10px; padding: 10px 4px; font-size: 14px; font-weight: 700; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+  .wiz-part.active { border-style: solid; border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .wiz-part.filled { border-style: solid; border-color: var(--border); color: var(--text); }
+  .wiz-sep { color: var(--text-muted); font-weight: 700; }
+  .wiz-msg { font-size: 15px; font-weight: 700; color: var(--accent); margin: 0 0 10px; }
+  .wiz-hint { font-size: 12.5px; color: var(--text-muted); margin: 0 0 10px; }
+  .wiz-grid { display: grid; gap: 8px; }
+  .wiz-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .wiz-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .wiz-grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
+  .wiz-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 700; color: var(--text); cursor: pointer; font-family: inherit; }
+  .wiz-btn.small { padding: 11px 0; font-size: 14px; }
+  .wiz-btn:active { background: var(--accent-soft); border-color: var(--accent); }
+  .wiz-btn:disabled { opacity: .35; }
+  .wiz-skip { margin-top: 10px; width: 100%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .wiz-done { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--accent-soft); border-radius: 12px; padding: 14px; }
+  .wiz-done b { font-size: 17px; color: var(--accent); }
+  .wiz-extra { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .wiz-extra input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; }
+  .planb-wrap { padding: 4px 16px 14px; text-align: center; }
+  .nodb { padding: 0 16px 6px; }
+  .nodb label { display:block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .nodb input[type=text] { width:100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; }
+  .nodb-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); display:none; }
+
   #camera-input { display: none; }
 
   .preview-wrap {
@@ -631,8 +661,19 @@
           <div id="barcode-result-status" class="barcode-status">
             <span id="barcode-result-text">Cerco il barcode...</span>
           </div>
+          <div id="nodb-panel" class="nodb" style="display:none;">
+            <label for="nodb-name">Come si chiama il prodotto?</label>
+            <input type="text" id="nodb-name" placeholder="Es. Latte Nesquik" autocomplete="off">
+            <div id="nodb-suggestions" class="date-chip-row" style="margin-top:8px;"></div>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+              <button type="button" id="nodb-photo-btn" class="btn btn-secondary" style="flex:1;">📷 Oppure fotografa il prodotto</button>
+              <img id="nodb-thumb" class="nodb-thumb" alt="Foto prodotto">
+            </div>
+            <p id="nodb-status" style="font-size:12.5px;color:var(--text-muted);margin:6px 0 0;"></p>
+            <input type="file" id="nodb-photo-input" accept="image/*" capture="environment" style="display:none;">
+          </div>
           <div style="padding: 14px 16px;">
-            <button type="button" id="continue-to-step2-btn" class="btn btn-primary">Continua → Fotografa la scadenza</button>
+            <button type="button" id="continue-to-step2-btn" class="btn btn-primary">Continua → Scadenza</button>
           </div>
         </div>
 
@@ -643,20 +684,56 @@
       <div id="step2-date" style="display:none;">
         <button type="button" id="back-to-barcode-btn" class="back-to-step-link">← Torna al barcode</button>
 
-        <div id="capture-empty-state" class="capture-empty">
+        <div id="date-wizard" class="wiz">
+          <h2 class="wiz-title">Quando scade?</h2>
+          <div class="wiz-summary">
+            <button type="button" class="wiz-part" id="wp-year" data-step="year">Anno</button>
+            <span class="wiz-sep">/</span>
+            <button type="button" class="wiz-part" id="wp-month" data-step="month">Mese</button>
+            <span class="wiz-sep">/</span>
+            <button type="button" class="wiz-part" id="wp-day" data-step="day">Giorno</button>
+          </div>
+          <div id="wiz-body">
+            <p class="wiz-msg" id="wiz-msg"></p>
+            <p class="wiz-hint" id="wiz-hint"></p>
+            <div class="wiz-grid" id="wiz-grid"></div>
+            <button type="button" class="wiz-skip" id="wiz-skip-day" style="display:none;">Non c'è il giorno → vale fino a fine mese</button>
+          </div>
+          <div id="wiz-done" class="wiz-done" style="display:none;">
+            <div><div style="font-size:12px;color:var(--text-muted);">Scade il</div><b id="wiz-done-text">—</b></div>
+            <button type="button" class="btn btn-secondary" id="wiz-edit" style="width:auto;padding:10px 16px;">Modifica</button>
+          </div>
+          <div class="wiz-extra">
+            <label for="quick-date-input" style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Più veloce? Scrivi solo i numeri</label>
+            <input type="text" id="quick-date-input" inputmode="numeric" autocomplete="off" placeholder="0627 = giugno 2027 · 151226 = 15/12/2026">
+            <p id="quick-date-feedback" style="font-size:12.5px;color:var(--text-muted);margin:6px 0 0;"></p>
+            <div class="date-chip-row" id="quick-date-chips" style="margin-top:6px;">
+              <div class="date-chip" data-days="3">tra 3 giorni</div>
+              <div class="date-chip" data-days="7">tra 1 sett.</div>
+              <div class="date-chip" data-days="14">tra 2 sett.</div>
+              <div class="date-chip" data-days="30">tra 1 mese</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="planb-wrap">
+          <button type="button" id="toggle-planb-btn" class="manual-entry-link">📷 Piano B: provo a leggerla con la fotocamera (sperimentale)</button>
+        </div>
+
+        <div id="capture-empty-state" class="capture-empty" style="display:none;">
           <div class="capture-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
               <circle cx="12" cy="13" r="4"></circle>
             </svg>
           </div>
-          <h2>Fotografa la scadenza</h2>
+          <h2>Piano B · fotocamera</h2>
           <p>Inquadra la data stampata sulla confezione, meglio se a fuoco e ben illuminata</p>
           <button type="button" id="start-live-date-btn" class="btn btn-primary" style="width: auto; padding-left: 24px; padding-right: 24px;">
             Leggi la data con la fotocamera
           </button>
           <label for="camera-input" class="manual-entry-link" style="cursor:pointer;">Preferisco scattare una foto →</label>
-          <button type="button" id="manual-entry-link" class="manual-entry-link">oppure inserisci manualmente ↓</button>
+          <button type="button" id="manual-entry-link" class="manual-entry-link">↑ Torno a inserirla a mano</button>
         </div>
 
         <div id="live-date-view" style="display:none;">
@@ -750,14 +827,6 @@
       <div class="field">
         <label for="product-date">Data di scadenza</label>
         <input type="date" id="product-date">
-        <input type="text" id="quick-date-input" inputmode="numeric" autocomplete="off" placeholder="Scrivi mese e anno: 0627 · oppure data intera: 151226" style="margin-top:8px;">
-        <div class="date-chip-row" id="quick-date-chips" style="margin-top:8px;">
-          <div class="date-chip" data-days="3">tra 3 giorni</div>
-          <div class="date-chip" data-days="7">tra 1 sett.</div>
-          <div class="date-chip" data-days="14">tra 2 sett.</div>
-          <div class="date-chip" data-days="30">tra 1 mese</div>
-        </div>
-        <p id="quick-date-feedback" style="font-size:12.5px;color:var(--text-muted);margin:6px 0 0;"></p>
       </div>
 
       <div class="field">
@@ -831,8 +900,8 @@
   let liveScanControls = null;
 
   manualEntryLink.addEventListener('click', () => {
-    productNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    productNameInput.focus();
+    captureEmptyState.style.display = 'none';
+    document.getElementById('date-wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   const productCategoryInput = document.getElementById('product-category');
   const newCategoryRow = document.getElementById('new-category-row');
@@ -1040,6 +1109,174 @@
     });
   });
 
+  // --- Wizard data di scadenza: anno → mese → giorno ---
+  const MESI = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const wizState = { y: null, m: null, d: null, step: 'year', noDay: false };
+  const wizMsg = document.getElementById('wiz-msg');
+  const wizHint = document.getElementById('wiz-hint');
+  const wizGrid = document.getElementById('wiz-grid');
+  const wizBody = document.getElementById('wiz-body');
+  const wizDone = document.getElementById('wiz-done');
+  const wizSkipDay = document.getElementById('wiz-skip-day');
+  const wizPart = { year: document.getElementById('wp-year'), month: document.getElementById('wp-month'), day: document.getElementById('wp-day') };
+  let wizSyncing = false;
+
+  function wizLastDay(y, m) { return new Date(y, m, 0).getDate(); }
+  function wizPad(n) { return String(n).padStart(2, '0'); }
+
+  function wizRender() {
+    wizPart.year.textContent = wizState.y || 'Anno';
+    wizPart.month.textContent = wizState.m ? MESI[wizState.m - 1] : 'Mese';
+    wizPart.day.textContent = wizState.noDay ? 'fine mese' : (wizState.d ? wizPad(wizState.d) : 'Giorno');
+    ['year', 'month', 'day'].forEach((k) => {
+      const filled = (k === 'year' && wizState.y) || (k === 'month' && wizState.m) || (k === 'day' && (wizState.d || wizState.noDay));
+      wizPart[k].classList.toggle('filled', !!filled);
+      wizPart[k].classList.toggle('active', wizState.step === k);
+    });
+
+    const complete = wizState.y && wizState.m && (wizState.d || wizState.noDay);
+    wizDone.style.display = complete ? 'flex' : 'none';
+    wizBody.style.display = complete ? 'none' : 'block';
+    if (complete) {
+      const day = wizState.noDay ? wizLastDay(wizState.y, wizState.m) : wizState.d;
+      const iso = wizState.y + '-' + wizPad(wizState.m) + '-' + wizPad(day);
+      document.getElementById('wiz-done-text').textContent = formatDateIt(iso) + (wizState.noDay ? ' (fine mese)' : '');
+      wizSyncing = true;
+      productDateInput.value = iso;
+      productDateInput.dispatchEvent(new Event('change'));
+      wizSyncing = false;
+      return;
+    }
+
+    wizGrid.innerHTML = '';
+    wizSkipDay.style.display = 'none';
+    const now = new Date();
+    if (wizState.step === 'year') {
+      wizMsg.textContent = '1 · Aggiungi l\'ANNO';
+      wizHint.textContent = 'Guarda la data stampata sulla confezione. Quale anno è scritto?';
+      wizGrid.className = 'wiz-grid cols-3';
+      for (let i = 0; i < 6; i++) {
+        const y = now.getFullYear() + i;
+        wizGrid.appendChild(wizBtn(String(y), () => { wizState.y = y; wizState.step = wizState.m ? (wizState.d || wizState.noDay ? 'year' : 'day') : 'month'; wizRender(); }));
+      }
+    } else if (wizState.step === 'month') {
+      wizMsg.textContent = '2 · Aggiungi il MESE';
+      wizHint.textContent = 'Se sulla confezione c\'è scritto 06-2027, il mese è Giu.';
+      wizGrid.className = 'wiz-grid cols-4';
+      MESI.forEach((nome, i) => {
+        const b = wizBtn(nome, () => { wizState.m = i + 1; if (wizState.d && wizState.d > wizLastDay(wizState.y, wizState.m)) wizState.d = null; wizState.step = 'day'; wizRender(); }, true);
+        if (wizState.y === now.getFullYear() && i + 1 < now.getMonth() + 1 - 1) b.disabled = true;
+        wizGrid.appendChild(b);
+      });
+    } else {
+      wizMsg.textContent = '3 · Aggiungi il GIORNO';
+      wizHint.textContent = 'Se non c\'è il giorno (solo mese e anno), tocca il pulsante qui sotto.';
+      wizGrid.className = 'wiz-grid cols-7';
+      for (let d = 1; d <= wizLastDay(wizState.y, wizState.m); d++) {
+        wizGrid.appendChild(wizBtn(String(d), () => { wizState.d = d; wizState.noDay = false; wizRender(); }, true));
+      }
+      wizSkipDay.style.display = 'block';
+    }
+  }
+
+  function wizBtn(label, onClick, small) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'wiz-btn' + (small ? ' small' : ''); b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  wizSkipDay.addEventListener('click', () => { wizState.noDay = true; wizState.d = null; wizRender(); });
+  document.getElementById('wiz-edit').addEventListener('click', () => { wizState.step = 'year'; wizState.y = null; wizState.m = null; wizState.d = null; wizState.noDay = false; wizRender(); });
+  Object.keys(wizPart).forEach((k) => wizPart[k].addEventListener('click', () => {
+    if (k === 'month' && !wizState.y) return;
+    if (k === 'day' && !(wizState.y && wizState.m)) return;
+    if (k === 'day') { wizState.d = null; wizState.noDay = false; }
+    wizState.step = k; wizRender();
+  }));
+
+  // sincronizza il wizard quando la data cambia da fuori (foto, scrittura veloce, modifica manuale)
+  productDateInput.addEventListener('change', () => {
+    if (wizSyncing || !productDateInput.value) return;
+    const [y, m, d] = productDateInput.value.split('-').map(Number);
+    wizState.y = y; wizState.m = m; wizState.d = d; wizState.noDay = false; wizState.step = 'year';
+    wizRender();
+  });
+  wizRender();
+
+  document.getElementById('toggle-planb-btn').addEventListener('click', () => {
+    const open = captureEmptyState.style.display === 'none';
+    captureEmptyState.style.display = open ? 'flex' : 'none';
+    if (open) captureEmptyState.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // --- Prodotto non nel database: nome a mano o foto ---
+  const nodbPanel = document.getElementById('nodb-panel');
+  const nodbName = document.getElementById('nodb-name');
+  const nodbSuggestions = document.getElementById('nodb-suggestions');
+  const nodbPhotoBtn = document.getElementById('nodb-photo-btn');
+  const nodbPhotoInput = document.getElementById('nodb-photo-input');
+  const nodbThumb = document.getElementById('nodb-thumb');
+  const nodbStatus = document.getElementById('nodb-status');
+  let productPhoto = null;
+
+  function showNoDb() {
+    nodbPanel.style.display = 'block';
+    nodbName.value = productNameInput.value;
+  }
+  function hideNoDb() { nodbPanel.style.display = 'none'; }
+  nodbName.addEventListener('input', () => { productNameInput.value = nodbName.value; });
+  nodbPhotoBtn.addEventListener('click', () => nodbPhotoInput.click());
+
+  function downscale(dataUrl, maxSide, quality) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    });
+  }
+
+  nodbPhotoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const thumb = await downscale(evt.target.result, 320, 0.6);
+      if (thumb) { productPhoto = thumb; nodbThumb.src = thumb; nodbThumb.style.display = 'block'; }
+      nodbSuggestions.innerHTML = '';
+      if (typeof Tesseract === 'undefined') { nodbStatus.textContent = 'Foto salvata. Scrivi il nome qui sopra.'; return; }
+      nodbStatus.textContent = 'Foto salvata. Provo a leggere il nome sulla confezione…';
+      try {
+        const big = await downscale(evt.target.result, 1400, 0.85);
+        const { data } = await Tesseract.recognize(big, 'ita');
+        const lines = data.text.split(/\n+/).map((l) => l.replace(/[^A-Za-zÀ-ÿ0-9' &%.-]/g, ' ').replace(/\s+/g, ' ').trim())
+          .filter((l) => l.length >= 4 && (l.match(/[A-Za-zÀ-ÿ]/g) || []).length / l.length > 0.7)
+          .slice(0, 4);
+        if (lines.length) {
+          nodbStatus.textContent = 'Tocca il nome giusto, oppure scrivilo tu:';
+          lines.forEach((l) => {
+            const chip = document.createElement('div');
+            chip.className = 'date-chip'; chip.textContent = l;
+            chip.addEventListener('click', () => { nodbName.value = l; productNameInput.value = l; });
+            nodbSuggestions.appendChild(chip);
+          });
+        } else {
+          nodbStatus.textContent = 'Foto salvata. Non riesco a leggere il nome: scrivilo qui sopra.';
+        }
+      } catch (err) {
+        nodbStatus.textContent = 'Foto salvata. Scrivi il nome qui sopra.';
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+
   // --- Cattura foto data (step 2) ---
   cameraInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -1058,7 +1295,7 @@
 
   retakeBtn.addEventListener('click', () => {
     cameraInput.value = '';
-    captureEmptyState.style.display = 'flex';
+    captureEmptyState.style.display = 'none';
     previewState.style.display = 'none';
     dateConfirmPanel.style.display = 'none';
     ocrStatus.style.display = 'none';
@@ -1097,13 +1334,16 @@
           }
           barcodeResultText.textContent = name
             ? `📦 Riconosciuto: ${name}`
-            : '📦 Barcode letto, ma il prodotto non è nel database — nessun problema';
+            : '📦 Barcode letto, ma il prodotto non è nel database — dagli un nome qui sotto';
+          if (name) hideNoDb(); else showNoDb();
         } else {
-          barcodeResultText.textContent = '📦 Barcode letto, ma il prodotto non è nel database — nessun problema';
+          barcodeResultText.textContent = '📦 Barcode letto, ma il prodotto non è nel database — dagli un nome qui sotto';
+          showNoDb();
         }
       })
       .catch(() => {
-        barcodeResultText.textContent = '📦 Barcode letto, ma la ricerca del prodotto non è riuscita — nessun problema';
+        barcodeResultText.textContent = '📦 Barcode letto, ma la ricerca non è riuscita — dagli un nome qui sotto';
+        showNoDb();
       });
   }
 
@@ -1376,6 +1616,7 @@
       location: selectedLocation,
       addedAt: new Date().toISOString()
     };
+    if (productPhoto) product.photo = productPhoto;
 
     saveBtn.disabled = true;
     const products = await loadProducts();
@@ -1407,6 +1648,8 @@
     newCategoryRow.style.display = 'none';
     productQtyInput.value = '1';
     productDateInput.value = '';
+    productPhoto = null; nodbThumb.style.display = 'none'; nodbSuggestions.innerHTML = ''; nodbStatus.textContent = ''; nodbName.value = ''; hideNoDb();
+    wizState.y = wizState.m = wizState.d = null; wizState.noDay = false; wizState.step = 'year'; wizRender();
     document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));
     document.querySelector('.location-pill[data-location="frigo"]').classList.add('selected');
     selectedLocation = 'frigo';

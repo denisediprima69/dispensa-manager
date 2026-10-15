@@ -27,9 +27,12 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] **Scansione barcode dal vivo** (fotocamera continua, non più foto statica singola) su `aggiungi-prodotto.html` e `prodotto-peso.html` — molto più affidabile perché analizza molti fotogrammi finché non trova una lettura pulita, invece di un solo scatto. Foto statica mantenuta come fallback ("Non funziona? Scatta una foto invece")
 - [x] Scansione barcode in **due passaggi separati** (barcode facoltativo → data di scadenza): risolve il problema reale per cui barcode e scadenza sono spesso su lati opposti della confezione. Riconoscimento barcode tramite ZXing + ricerca automatica nome prodotto su Open Food Facts. Banner suggerimento disattivabile in modo permanente (riattivabile da Impostazioni)
 
+- [x] **Scadenza guidata passo-passo** (anno → mese → giorno, con «Non c'è il giorno» per le date MM-AAAA), scrittura rapida dei numeri (`0627`) e lettura con fotocamera come piano B
+- [x] **Prodotto non nel database**: nome a mano o foto del prodotto (miniatura salvata, lettura del nome dall'etichetta come suggerimento)
+
 ### Ancora da fare (V1)
 
-- [ ] Foto conservata sul prodotto (miniatura visibile nella card) — volutamente lasciata per ultima
+- [ ] Foto conservata per tutti i prodotti (oggi solo se il prodotto non è nel database)
 - [ ] Motore di invio notifiche push vero (richiede backend + service worker)
 
 ## Stack tecnico
