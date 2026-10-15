@@ -831,13 +831,14 @@
     }
   }
 
-  async function logEvent(type, qty, productName) {
+  async function logEvent(type, qty, productName, expiryDate) {
     const events = await loadEvents();
     events.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
       type, // 'consumato' | 'buttato'
       qty,
       productName,
+      expiryDate: expiryDate || null,
       date: new Date().toISOString()
     });
     await saveEvents(events);
@@ -1051,7 +1052,7 @@
     }
 
     await saveProducts(productsBefore);
-    await logEvent('consumato', 1, product.name);
+    await logEvent('consumato', 1, product.name, product.expiryDate);
 
     const remainingText = remaining > 0 ? ` (${remaining} rimasti)` : '';
     showUndoToast(`✅ ${product.name} consumato${remainingText}`);
@@ -1081,7 +1082,7 @@
     }
 
     await saveProducts(products);
-    await logEvent(type, consumeQty, consumingProduct.name);
+    await logEvent(type, consumeQty, consumingProduct.name, consumingProduct.expiryDate);
     closeConsumeModal();
 
     if (type === 'consumato') {

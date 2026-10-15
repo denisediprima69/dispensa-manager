@@ -368,6 +368,23 @@
     z-index: 1;
   }
 
+
+  /* --- Grafico settimanale salvati / buttati --- */
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 16px 14px; }
+  .chart-card h2 { font-size: 16px; margin: 0 0 4px; }
+  .chart-sub { font-size: 12.5px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.4; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 12px; height: 150px; padding: 0 4px; }
+  .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+  .chart-stack { width: 100%; max-width: 54px; display: flex; flex-direction: column-reverse; border-radius: 10px 10px 4px 4px; overflow: hidden; background: var(--bg); }
+  .chart-seg-saved { background: var(--accent); }
+  .chart-seg-wasted { background: var(--danger); }
+  .chart-total { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+  .chart-label { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; text-align: center; line-height: 1.2; }
+  .chart-legend { display: flex; gap: 16px; justify-content: center; margin-top: 14px; font-size: 12px; color: var(--text-muted); }
+  .chart-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .chart-now { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+  .chart-now b { font-size: 15px; }
+
   /* --- Impact tracker (personal, only shows if data present) --- */
   .impact-note {
     text-align: center;
@@ -444,6 +461,17 @@
             <p>Una settimana prima della scadenza ti avvisiamo, così hai il tempo di consumarlo o cucinarlo</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Il tuo andamento</p>
+      <div class="chart-card">
+        <h2>Salvati e buttati, settimana per settimana</h2>
+        <p class="chart-sub" id="chart-sub">Ogni volta che segni un prodotto come consumato o buttato, compare qui.</p>
+        <div class="chart-bars" id="chart-bars"></div>
+        <div class="chart-legend"><span><i style="background:var(--accent)"></i>Salvati</span><span><i style="background:var(--danger)"></i>Buttati</span></div>
+        <div class="chart-now"><span>In scadenza nei prossimi 7 giorni</span><b id="chart-expiring">0</b></div>
       </div>
     </section>
 
@@ -555,6 +583,36 @@
     stipinoLine.style.display = 'block';
   }
 
+  async function renderChart() {
+    const [events, products] = await Promise.all([loadEvents(), loadProducts()]);
+    const today = new Date(); today.setHours(23, 59, 59, 999);
+    const DAY = 864e5, WEEKS = 4;
+    const buckets = Array.from({ length: WEEKS }, () => ({ saved: 0, wasted: 0 }));
+    events.forEach((ev) => {
+      const age = Math.floor((today - new Date(ev.date)) / DAY);
+      const i = Math.floor(age / 7);
+      if (age < 0 || i >= WEEKS) return;
+      if (ev.type === 'consumato') buckets[i].saved += ev.qty; else if (ev.type === 'buttato') buckets[i].wasted += ev.qty;
+    });
+    const labels = ['Questa sett.', 'Scorsa sett.', '2 sett. fa', '3 sett. fa'];
+    const max = Math.max(1, ...buckets.map((b) => b.saved + b.wasted));
+    const cols = buckets.map((b, i) => ({ b, label: labels[i] })).reverse();   // dalla più vecchia alla più recente
+    document.getElementById('chart-bars').innerHTML = cols.map(({ b, label }) => {
+      const tot = b.saved + b.wasted, H = 110;
+      const hs = Math.round((b.saved / max) * H), hw = Math.round((b.wasted / max) * H);
+      return '<div class="chart-col"><div class="chart-total">' + (tot || '') + '</div>' +
+        '<div class="chart-stack" style="height:' + Math.max(tot ? hs + hw : 4, 4) + 'px;">' +
+        (b.saved ? '<div class="chart-seg-saved" style="height:' + hs + 'px"></div>' : '') +
+        (b.wasted ? '<div class="chart-seg-wasted" style="height:' + hw + 'px"></div>' : '') + '</div>' +
+        '<div class="chart-label">' + label + '</div></div>';
+    }).join('');
+    const savedAll = buckets.reduce((n, b) => n + b.saved, 0), wastedAll = buckets.reduce((n, b) => n + b.wasted, 0);
+    document.getElementById('chart-sub').textContent = savedAll + wastedAll === 0
+      ? 'Ogni volta che segni un prodotto come consumato o buttato, compare qui.'
+      : `Nelle ultime 4 settimane: ${savedAll} salvati${wastedAll ? ', ' + wastedAll + ' buttati' : ' e nessuno buttato'}.`;
+    document.getElementById('chart-expiring').textContent = products.filter((p) => p.expiryDate && daysUntil(p.expiryDate) <= 7).length;
+  }
+
   async function renderStats() {
     const events = await loadEvents();
 
@@ -595,6 +653,7 @@
   }
 
   renderStats();
+  renderChart();
   renderUrgentSection();
 })();
 </script>
