@@ -109,12 +109,22 @@
     status('Richiesta accesso alla fotocamera…');
     navigator.mediaDevices.getUserMedia({
       audio: false,
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
     }).then(async (s) => {
       if (stopped) { s.getTracks().forEach((t) => t.stop()); return; }
       stream = s;
       video.setAttribute('playsinline', ''); video.muted = true; video.srcObject = s;
       try { await video.play(); } catch (e) { fail('La fotocamera non parte (' + (e.name || 'play') + ').'); return; }
+
+      // niente zoom, messa a fuoco continua (dove supportato)
+      try {
+        const track = s.getVideoTracks()[0], caps = track.getCapabilities ? track.getCapabilities() : {};
+        const adv = {};
+        if (caps.zoom) adv.zoom = caps.zoom.min;
+        if (caps.focusMode && caps.focusMode.indexOf('continuous') >= 0) adv.focusMode = 'continuous';
+        if (Object.keys(adv).length) await track.applyConstraints({ advanced: [adv] });
+      } catch (e) { /* non supportato */ }
+      if (opts.onVideoReady) opts.onVideoReady(video.videoWidth, video.videoHeight);
 
       status('Preparo il lettore della data…');
       try {
@@ -127,6 +137,21 @@
       if (stopped) { stop(); return; }
       status('Inquadra la data stampata, tieni fermo il telefono');
 
+      const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim().slice(0, 50);
+      stop.readNow = async () => {
+        if (stopped || !worker) return;
+        if (timer) clearTimeout(timer);
+        status('Leggo…');
+        try {
+          const snap = grab();
+          const { data } = await worker.recognize(canvas);
+          const dates = parse(data.text);
+          if (dates.length) { stop(); opts.onFound(dates, snap); return; }
+          status('Nessuna data letta' + (clean(data.text) ? ' (vedo: «' + clean(data.text) + '»)' : '') + ' — avvicinati un po\' o cambia luce');
+        } catch (e) { status('Lettura non riuscita, riprova'); }
+        timer = setTimeout(loop, 600);
+      };
+
       const loop = async () => {
         if (stopped) return;
         try {
@@ -134,6 +159,7 @@
           if (snap) {
             const { data } = await worker.recognize(canvas);
             const dates = parse(data.text);
+            if (!dates.length && clean(data.text)) status('Sto leggendo: «' + clean(data.text) + '»');
             recent.push(dates); if (recent.length > 4) recent.shift();
             // conferma: la stessa data letta in almeno 2 fotogrammi recenti
             const count = {};
