@@ -81,28 +81,52 @@
     }
     if (typeof Tesseract === 'undefined') { fail('Lettore testo non disponibile.'); return stop; }
 
+    // Pre-elaborazione pensata per date stampate a getto d'inchiostro / a puntini:
+    // soglia adattiva locale + ispessimento per unire i puntini.
     function grab() {
       const w = video.videoWidth, h = video.videoHeight;
       if (!w || !h) return null;
-      const sw = Math.round(w * 0.9), sh = Math.round(h * 0.5);
+      const sw = Math.round(w * 0.9), sh = Math.round(h * 0.3);
       const sx = Math.round((w - sw) / 2), sy = Math.round((h - sh) / 2);
-      const scale = Math.min(2, 1400 / sw);
-      canvas.width = Math.round(sw * scale); canvas.height = Math.round(sh * scale);
-      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+      const scale = Math.min(1.5, 1000 / sw);
+      const W = Math.round(sw * scale), H = Math.round(sh * scale);
+      canvas.width = W; canvas.height = H;
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
       const snap = canvas.toDataURL('image/jpeg', 0.7);
-      // scala di grigi + contrasto
-      const img = ctx.getImageData(0, 0, canvas.width, canvas.height), p = img.data;
-      let lo = 255, hi = 0;
-      for (let i = 0; i < p.length; i += 4) {
-        const g = (p[i] * 0.3 + p[i + 1] * 0.59 + p[i + 2] * 0.11) | 0;
-        p[i] = p[i + 1] = p[i + 2] = g; if (g < lo) lo = g; if (g > hi) hi = g;
+
+      const img = ctx.getImageData(0, 0, W, H), p = img.data;
+      const g = new Float32Array(W * H);
+      for (let i = 0, j = 0; i < p.length; i += 4, j++) g[j] = p[i] * 0.3 + p[i + 1] * 0.59 + p[i + 2] * 0.11;
+
+      // media locale con immagine integrale
+      const R = 18, I = new Float64Array((W + 1) * (H + 1));
+      for (let y = 0; y < H; y++) {
+        let row = 0;
+        for (let x = 0; x < W; x++) { row += g[y * W + x]; I[(y + 1) * (W + 1) + x + 1] = I[y * (W + 1) + x + 1] + row; }
       }
-      const range = Math.max(40, hi - lo);
-      for (let i = 0; i < p.length; i += 4) {
-        const v = Math.max(0, Math.min(255, ((p[i] - lo) * 255) / range));
-        p[i] = p[i + 1] = p[i + 2] = v;
+      const dark = new Uint8Array(W * H);
+      for (let y = 0; y < H; y++) {
+        const y0 = Math.max(0, y - R), y1 = Math.min(H, y + R + 1);
+        for (let x = 0; x < W; x++) {
+          const x0 = Math.max(0, x - R), x1 = Math.min(W, x + R + 1);
+          const sum = I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x1] - I[y1 * (W + 1) + x0] + I[y0 * (W + 1) + x0];
+          const mean = sum / ((x1 - x0) * (y1 - y0));
+          dark[y * W + x] = g[y * W + x] < mean - 14 ? 1 : 0;
+        }
       }
+      // ispessimento (dilatazione 5x5 separabile) per unire i puntini
+      const tmp = new Uint8Array(W * H), out = new Uint8Array(W * H), D = 2;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        let v = 0; for (let k = -D; k <= D && !v; k++) { const xx = x + k; if (xx >= 0 && xx < W && dark[y * W + xx]) v = 1; }
+        tmp[y * W + x] = v;
+      }
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        let v = 0; for (let k = -D; k <= D && !v; k++) { const yy = y + k; if (yy >= 0 && yy < H && tmp[yy * W + x]) v = 1; }
+        out[y * W + x] = v;
+      }
+      for (let j = 0, i = 0; j < out.length; j++, i += 4) { const v = out[j] ? 0 : 255; p[i] = p[i + 1] = p[i + 2] = v; p[i + 3] = 255; }
       ctx.putImageData(img, 0, 0);
+      if (opts.onDebug) opts.onDebug(canvas.toDataURL('image/png'));
       return snap;
     }
 
@@ -130,8 +154,8 @@
       try {
         worker = await Tesseract.createWorker('eng');
         await worker.setParameters({
-          tessedit_char_whitelist: '0123456789/.-: ABCDEFGHIJLMNOPRSTUVZ',
-          tessedit_pageseg_mode: '11'
+          tessedit_char_whitelist: '0123456789/.-: ',
+          tessedit_pageseg_mode: '6'
         });
       } catch (e) { fail('Non riesco a caricare il lettore (' + (e && e.message ? e.message : 'errore') + ').'); return; }
       if (stopped) { stop(); return; }

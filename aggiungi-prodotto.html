@@ -662,15 +662,16 @@
         <div id="live-date-view" style="display:none;">
           <div class="live-scan-wrap" id="date-video-wrap" style="margin:0 auto;">
             <video id="date-video" autoplay playsinline muted style="width:100%;height:100%;max-height:none;object-fit:cover;"></video>
-            <div class="scan-target-box" style="width:90%;height:50%;"></div>
+            <div class="scan-target-box" style="width:90%;height:30%;"></div>
           </div>
           <p class="scan-hint" id="live-date-hint">Avvio…</p>
+          <div style="padding:0 16px;"><img id="date-debug-img" alt="" style="width:100%;max-height:90px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:8px;display:none;"></div>
           <div id="live-date-error" class="error-banner-inline" style="display:none;"></div>
           <div style="padding: 0 16px 8px;">
             <button type="button" id="read-now-btn" class="btn btn-secondary">📸 Leggi adesso</button>
           </div>
           <div style="padding: 0 16px 16px;">
-            <button type="button" id="cancel-live-date-btn" class="manual-entry-link">Annulla, la scrivo io ↓</button>
+            <button type="button" id="cancel-live-date-btn" class="manual-entry-link">Preferisco scriverla io ↓</button>
           </div>
         </div>
 
@@ -985,6 +986,7 @@
     stopDateScan = window.DateReader.startDateScan({
       video: dateVideo,
       onStatus: (m) => { liveDateHint.textContent = m; },
+      onDebug: (url) => { const d = document.getElementById('date-debug-img'); d.src = url; d.style.display = 'block'; },
       onVideoReady: (w, h) => {
         const wrap = document.getElementById('date-video-wrap');
         wrap.style.aspectRatio = w + ' / ' + h;
