@@ -28,7 +28,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] **Scansione barcode dal vivo** (fotocamera continua, non più foto statica singola) su `aggiungi-prodotto.html` e `prodotto-peso.html` — molto più affidabile perché analizza molti fotogrammi finché non trova una lettura pulita, invece di un solo scatto. Foto statica mantenuta come fallback ("Non funziona? Scatta una foto invece")
 - [x] Scansione barcode in **due passaggi separati** (barcode facoltativo → data di scadenza): risolve il problema reale per cui barcode e scadenza sono spesso su lati opposti della confezione. Riconoscimento barcode tramite ZXing + ricerca automatica nome prodotto su Open Food Facts. Banner suggerimento disattivabile in modo permanente (riattivabile da Impostazioni)
 
-- [x] **Scadenza a un tocco** (`date-picker.js`): scorciatoie (3 giorni, 1 sett., …), anno + mese = fatto (fine mese), giorno facoltativo, numeri (`0627`); usato sia nell'aggiunta singola sia nella revisione «Alla cassa». Lettura con fotocamera come piano B
+- [x] **Scadenza con calendario** (`date-picker.js`): calendario mensile con frecce e salto d'anno, tasto «non c'è il giorno» (fine mese), oppure scrittura (15/12/2026, 06/2027); usato sia nell'aggiunta singola sia nella revisione «Alla cassa». Lettura con fotocamera come piano B
 - [x] Menu «Aggiungi» ridotto a due metodi: **Alla cassa** e **Un prodotto alla volta**. Scontrino e prodotti a peso restano nel codice ma non sono più nel menu (da riprendere più avanti)
 - [x] **Prodotto non nel database**: nome a mano o foto del prodotto (miniatura salvata, lettura del nome dall'etichetta come suggerimento)
 
