@@ -258,6 +258,8 @@
   .badge.warning { background: var(--warning-soft); color: var(--warning); }
   .badge.urgent { background: var(--danger-soft); color: var(--danger); }
   .badge.expired { background: var(--danger); color: white; }
+  .badge.pending { background: var(--warning-soft); color: var(--warning); }
+  .status-dot.pending { background: var(--warning); }
 
   .empty-zone {
     font-size: 13px;
@@ -548,7 +550,7 @@
     padding: 0;
   }
 </style>
-<script src="storage-shim.js?v=6"></script>
+<script src="storage-shim.js?v=7"></script>
 </head>
 <body>
 <div class="app">
@@ -848,6 +850,9 @@
     return Math.round((target - now) / (1000 * 60 * 60 * 24));
   }
 
+  // senza scadenza ('Da completare') = in cima alla lista
+  function sortKey(p) { return p.expiryDate ? daysUntil(p.expiryDate) : -99999; }
+
   function badgeInfo(days) {
     if (days < 0) return { cls: 'expired', text: 'Scaduto' };
     if (days === 0) return { cls: 'urgent', text: 'Oggi' };
@@ -873,8 +878,8 @@
   }
 
   function productRowHTML(p) {
-    const days = daysUntil(p.expiryDate);
-    const badge = badgeInfo(days);
+    const pending = !p.expiryDate;
+    const badge = pending ? { cls: 'pending', text: 'Da completare' } : badgeInfo(daysUntil(p.expiryDate));
     const qtyText = p.quantity > 1 ? ` · ${p.quantity} pezzi` : '';
     return `
       <div class="product-row" data-id="${p.id}">
@@ -884,7 +889,7 @@
         ${p.photo ? `<img class="thumb" src="${p.photo}" alt="">` : ''}
         <div class="product-info" data-id="${p.id}">
           <div class="name">${escapeHtml(p.name)}</div>
-          <div class="meta">${formatDateIt(p.expiryDate)}${qtyText}</div>
+          <div class="meta">${pending ? 'Tocca per aggiungere la scadenza' : formatDateIt(p.expiryDate)}${qtyText}</div>
         </div>
         <div class="badge ${badge.cls}"><span class="status-dot ${badge.cls}" style="display:inline-block; margin-right:5px; vertical-align:middle;"></span>${badge.text}</div>
         <button class="more-btn" aria-label="Altre azioni">⋯</button>
@@ -896,7 +901,7 @@
     const products = await loadProducts();
 
     totalCountEl.textContent = products.length;
-    urgentCountEl.textContent = products.filter(p => daysUntil(p.expiryDate) <= 7).length;
+    urgentCountEl.textContent = products.filter(p => p.expiryDate && daysUntil(p.expiryDate) <= 7).length;
 
     if (products.length === 0) {
       mainContent.innerHTML = `
@@ -910,7 +915,7 @@
     }
 
     if (sortMode === 'expiry') {
-      const sorted = [...products].sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+      const sorted = [...products].sort((a, b) => sortKey(a) - sortKey(b));
       mainContent.innerHTML = `
         <div class="zone-section">
           <div class="zone-header">
@@ -926,7 +931,7 @@
       ZONES.forEach(zone => {
         const items = products
           .filter(p => p.location === zone.key)
-          .sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+          .sort((a, b) => sortKey(a) - sortKey(b));
 
         if (items.length === 0) return;
 
@@ -1096,7 +1101,7 @@
     editName.value = product.name;
     editCategory.value = product.category || 'altro';
     editQty.value = product.quantity || 1;
-    editDate.value = product.expiryDate;
+    editDate.value = product.expiryDate || '';
     editLocation.value = product.location;
     editNewCategoryRow.style.display = 'none';
     editModal.classList.add('show');

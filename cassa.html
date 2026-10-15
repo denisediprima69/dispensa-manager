@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lo Stipo — Alla cassa</title>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+<script src="storage-shim.js?v=7"></script>
+<script src="scanner.js?v=7"></script>
+<script src="date-reader.js?v=7"></script>
+<script src="product-rules.js?v=7"></script>
+<style>
+  :root {
+    --bg: #F7F7F5; --surface: #FFFFFF; --border: #E4E4E0; --text: #1C1C1A; --text-muted: #6B6B66;
+    --accent: #2F6F4E; --accent-soft: #E8F1EC; --danger: #B3413A; --danger-soft: #F7E8E7;
+    --warning: #B8842F; --warning-soft: #F8EFDD; --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; }
+  .app { width: 100%; max-width: 480px; min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 18px 20px 14px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  header a { font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600; }
+  header h1 { font-size: 19px; margin: 6px 0 0; letter-spacing: -0.01em; }
+  header p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+  main { flex: 1; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 14px; }
+  .btn { border: none; border-radius: 12px; padding: 15px 18px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--accent-soft); color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--text-muted); font-weight: 600; }
+  .btn:disabled { opacity: .5; }
+
+  .intro { text-align: center; padding: 30px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .intro .icon { font-size: 44px; }
+  .intro h2 { margin: 10px 0 6px; font-size: 18px; }
+  .intro p { margin: 0 0 18px; font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
+
+  .cam-wrap { position: relative; background: #000; border-radius: var(--radius); overflow: hidden; }
+  .cam-wrap video { width: 100%; display: block; aspect-ratio: 4 / 3; object-fit: cover; }
+  .target { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 76%; height: 32%; border: 2px solid #fff; border-radius: 12px; box-shadow: 0 0 0 2000px rgba(0,0,0,.32); pointer-events: none; transition: border-color .15s; }
+  .target.hit { border-color: #5BE08F; }
+  .counter { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #fff; font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+  .flash { position: absolute; left: 10px; right: 10px; bottom: 10px; background: rgba(0,0,0,.72); color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity .2s; }
+  .flash.show { opacity: 1; }
+  .status { font-size: 12.5px; color: var(--text-muted); text-align: center; }
+  .error { background: var(--danger-soft); color: var(--danger); padding: 10px 12px; border-radius: 10px; font-size: 13px; }
+
+  .scan-list { display: flex; flex-direction: column; gap: 8px; }
+  .scan-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+  .scan-row .ico { font-size: 20px; }
+  .scan-row .nm { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scan-row .nm.unk { color: var(--warning); }
+  .scan-row .qt { background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; }
+  .scan-row button { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 2px 6px; }
+
+  .sticky-bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bg) 35%); z-index: 20; }
+  .sticky-inner { width: 100%; max-width: 448px; display: flex; flex-direction: column; gap: 6px; }
+
+  .note { background: var(--accent-soft); color: var(--accent); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .card input[type=text], .card select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; color: var(--text); }
+  .card input.need { border-color: var(--warning); background: var(--warning-soft); }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .stepper { display: flex; align-items: center; gap: 10px; }
+  .stepper button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: #fff; font-size: 18px; font-weight: 700; cursor: pointer; }
+  .stepper b { min-width: 22px; text-align: center; }
+  .pills { display: flex; gap: 6px; flex: 1; justify-content: flex-end; }
+  .pill { border: 1px solid var(--border); background: #fff; border-radius: 10px; padding: 8px 0; flex: 1; text-align: center; font-size: 17px; cursor: pointer; }
+  .pill.sel { background: var(--accent-soft); border-color: var(--accent); }
+  .lbl { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .fb { font-size: 12.5px; color: var(--text-muted); min-height: 16px; margin: 0; }
+  .fb.ok { color: var(--accent); font-weight: 700; }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a href="metodo-aggiunta.html">← Indietro</a>
+    <h1>🛒 Alla cassa</h1>
+    <p id="head-sub">Passa i prodotti davanti alla fotocamera: ad ogni bip è aggiunto</p>
+  </header>
+
+  <main>
+    <!-- 1. Intro -->
+    <section id="view-intro" class="intro">
+      <div class="icon">📡</div>
+      <h2>Scansiona tutta la spesa in una volta</h2>
+      <p>Come fa la cassiera: appoggia i prodotti sul tavolo e passa il barcode davanti alla fotocamera. Io riconosco il prodotto, lo metto in frigo, freezer o dispensa e conto i doppioni. Le scadenze le scrivi alla fine, tutte insieme.</p>
+      <button class="btn btn-primary" id="start-btn">▶ Inizia a scansionare</button>
+    </section>
+
+    <!-- 2. Scansione -->
+    <section id="view-scan" style="display:none; flex-direction:column; gap:12px;">
+      <div class="cam-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="target" id="target"></div>
+        <div class="counter" id="counter">0</div>
+        <div class="flash" id="flash"></div>
+      </div>
+      <div class="status" id="scan-status">Avvio…</div>
+      <div class="error" id="scan-error" style="display:none;"></div>
+      <div class="scan-list" id="scan-list"></div>
+    </section>
+
+    <!-- 3. Revisione -->
+    <section id="view-review" style="display:none; flex-direction:column; gap:12px;">
+      <div class="note">📅 Scrivi la scadenza solo con i numeri: <b>0627</b> = giugno 2027, <b>151226</b> = 15/12/2026. Puoi lasciarla vuota: il prodotto finisce in «Da completare» e la aggiungi dopo.</div>
+      <div id="review-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </section>
+  </main>
+</div>
+
+<div class="sticky-bar" id="bar-scan" style="display:none;">
+  <div class="sticky-inner">
+    <button class="btn btn-primary" id="done-btn" disabled>Ho finito</button>
+  </div>
+</div>
+<div class="sticky-bar" id="bar-review" style="display:none;">
+  <div class="sticky-inner">
+    <button class="btn btn-primary" id="save-btn">Salva tutto nello Stipo</button>
+    <button class="btn btn-ghost" id="more-btn">← Scansiona ancora</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const R = window.ProductRules;
+  const items = [];          // {code, name, category, location, qty, date, loading, source}
+  let stopScan = null;
+  const $ = (id) => document.getElementById(id);
+  const CATEGORIES = [['latticini','🥛 Latticini'],['carne','🥩 Carne'],['pesce','🐟 Pesce'],['frutta_verdura','🥦 Frutta e verdura'],['dispensa_secca','🥫 Dispensa'],['uova','🥚 Uova'],['surgelati','🧊 Surgelati'],['bevande','🥤 Bevande'],['altro','Altro']];
+  const LOCATIONS = ['frigo', 'freezer', 'dispensa', 'cantina'];
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+  function fmt(iso) { const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y; }
+  function total() { return items.reduce((n, i) => n + i.qty, 0); }
+
+  function show(view) {
+    $('view-intro').style.display = view === 'intro' ? 'block' : 'none';
+    $('view-scan').style.display = view === 'scan' ? 'flex' : 'none';
+    $('view-review').style.display = view === 'review' ? 'flex' : 'none';
+    $('bar-scan').style.display = view === 'scan' ? 'flex' : 'none';
+    $('bar-review').style.display = view === 'review' ? 'flex' : 'none';
+    $('head-sub').textContent = view === 'review' ? 'Controlla e scrivi le scadenze' : 'Passa i prodotti davanti alla fotocamera: ad ogni bip è aggiunto';
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- scansione ----------
+  let flashTimer = null;
+  function flash(msg) {
+    const f = $('flash'); f.textContent = msg; f.classList.add('show');
+    $('target').classList.add('hit');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => { f.classList.remove('show'); $('target').classList.remove('hit'); }, 1300);
+  }
+
+  function renderScanList() {
+    $('counter').textContent = total();
+    $('done-btn').disabled = items.length === 0;
+    $('done-btn').textContent = items.length ? 'Ho finito · ' + total() + (total() === 1 ? ' prodotto' : ' prodotti') : 'Ho finito';
+    $('scan-list').innerHTML = items.slice().reverse().map((it) => {
+      const unk = !it.loading && !it.name;
+      return '<div class="scan-row" data-code="' + esc(it.code) + '">' +
+        '<span class="ico">' + (it.loading ? '⏳' : R.LOCATION_ICON[it.location] || '📦') + '</span>' +
+        '<span class="nm ' + (unk ? 'unk' : '') + '">' + (it.loading ? 'Riconosco il prodotto…' : (unk ? 'Prodotto nuovo — lo nomini dopo' : esc(it.name))) + '</span>' +
+        (it.qty > 1 ? '<span class="qt">×' + it.qty + '</span>' : '') +
+        '<button aria-label="Rimuovi">×</button></div>';
+    }).join('');
+    $('scan-list').querySelectorAll('.scan-row button').forEach((b) => b.addEventListener('click', () => {
+      const code = b.closest('.scan-row').dataset.code;
+      const i = items.findIndex((x) => x.code === code);
+      if (i < 0) return;
+      if (items[i].qty > 1) items[i].qty--; else items.splice(i, 1);
+      renderScanList();
+    }));
+  }
+
+  function onCode(code) {
+    R.beep();
+    const existing = items.find((x) => x.code === code);
+    if (existing) {
+      existing.qty++;
+      flash('+1 ' + (existing.name || 'prodotto nuovo') + ' (×' + existing.qty + ')');
+      renderScanList();
+      return;
+    }
+    const it = { code, name: '', category: 'altro', location: 'dispensa', qty: 1, date: null, loading: true };
+    items.push(it);
+    flash('Bip! Riconosco il prodotto…');
+    renderScanList();
+    R.lookup(code).then((info) => {
+      it.name = info.name; it.category = info.category; it.location = info.location; it.loading = false; it.source = info.source;
+      flash(info.name ? '✓ ' + info.name + ' → ' + R.LOCATION_LABEL[info.location] : 'Prodotto nuovo: lo nomini alla fine');
+      renderScanList();
+    });
+  }
+
+  function startScan() {
+    show('scan');
+    $('scan-error').style.display = 'none';
+    $('scan-status').textContent = 'Avvio fotocamera…';
+    if (stopScan) stopScan();
+    stopScan = window.startBarcodeScan({
+      video: $('video'),
+      continuous: true,
+      onStatus: (m) => { $('scan-status').textContent = m; },
+      onError: (m) => {
+        stopScan = null;
+        $('scan-status').textContent = 'Scansione non avviata';
+        $('scan-error').style.display = 'block';
+        $('scan-error').textContent = m + (items.length ? ' Puoi comunque procedere con i prodotti già scansionati.' : '');
+      },
+      onResult: onCode
+    });
+    renderScanList();
+  }
+
+  function stopCamera() { if (stopScan) { stopScan(); stopScan = null; } }
+
+  // ---------- revisione ----------
+  let customCats = [];
+  async function loadCustomCats() {
+    try { const r = await window.storage.get('categorie-personalizzate', false); customCats = r ? JSON.parse(r.value) : []; } catch (e) { customCats = []; }
+  }
+
+  function catOptions(sel) {
+    const all = CATEGORIES.concat(customCats.map((c) => [c, c.charAt(0).toUpperCase() + c.slice(1)]));
+    return all.map(([v, l]) => '<option value="' + esc(v) + '"' + (v === sel ? ' selected' : '') + '>' + esc(l) + '</option>').join('');
+  }
+
+  function renderReview() {
+    $('review-list').innerHTML = '';
+    items.forEach((it, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML =
+        '<input type="text" class="name-in ' + (it.name ? '' : 'need') + '" placeholder="Come si chiama? (es. Latte Nesquik)" value="' + esc(it.name).replace(/"/g, '&quot;') + '">' +
+        '<div class="row"><div class="stepper"><button type="button" class="minus">−</button><b class="qv">' + it.qty + '</b><button type="button" class="plus">+</button></div>' +
+        '<div class="pills">' + LOCATIONS.map((l) => '<div class="pill ' + (it.location === l ? 'sel' : '') + '" data-l="' + l + '" title="' + R.LOCATION_LABEL[l] + '">' + R.LOCATION_ICON[l] + '</div>').join('') + '</div></div>' +
+        '<div class="lbl loc-lbl">Lo metto in: ' + R.LOCATION_LABEL[it.location] + '</div>' +
+        '<select class="cat-in">' + catOptions(it.category) + '</select>' +
+        '<div><div class="lbl" style="margin-bottom:6px;">Scadenza</div>' +
+        '<input type="text" class="date-in" inputmode="numeric" autocomplete="off" placeholder="0627 oppure 151226">' +
+        '<p class="fb"></p>' +
+        '<div class="chips"><span class="chip" data-d="3">tra 3 giorni</span><span class="chip" data-d="7">1 sett.</span><span class="chip" data-d="14">2 sett.</span><span class="chip" data-d="30">1 mese</span></div></div>';
+      const q = (s) => card.querySelector(s);
+      q('.name-in').addEventListener('input', (e) => { it.name = e.target.value; e.target.classList.toggle('need', !it.name.trim()); });
+      q('.minus').addEventListener('click', () => { if (it.qty > 1) { it.qty--; q('.qv').textContent = it.qty; } });
+      q('.plus').addEventListener('click', () => { it.qty++; q('.qv').textContent = it.qty; });
+      card.querySelectorAll('.pill').forEach((p) => p.addEventListener('click', () => {
+        it.location = p.dataset.l;
+        card.querySelectorAll('.pill').forEach((x) => x.classList.toggle('sel', x === p));
+        q('.loc-lbl').textContent = 'Lo metto in: ' + R.LOCATION_LABEL[it.location];
+      }));
+      q('.cat-in').addEventListener('change', (e) => { it.category = e.target.value; });
+      const fb = q('.fb'), di = q('.date-in');
+      const setDate = (iso) => { it.date = iso; fb.textContent = iso ? '✓ ' + fmt(iso) : ''; fb.classList.toggle('ok', !!iso); };
+      di.addEventListener('input', () => {
+        if (!di.value.trim()) { setDate(null); return; }
+        const iso = window.DateReader.parseDigits(di.value);
+        if (iso) setDate(iso); else { it.date = null; fb.classList.remove('ok'); fb.textContent = 'Scrivi mese+anno (0627) o la data intera (151226)'; }
+      });
+      card.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => { setDate(window.DateReader.addDays(+c.dataset.d)); di.value = ''; }));
+      $('review-list').appendChild(card);
+    });
+  }
+
+  async function goReview() {
+    stopCamera();
+    await loadCustomCats();
+    renderReview();
+    show('review');
+  }
+
+  async function saveAll() {
+    const missing = items.find((i) => !i.name.trim());
+    if (missing) { toast('Dai un nome ai prodotti evidenziati'); const el = document.querySelector('.name-in.need'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } return; }
+    $('save-btn').disabled = true;
+    let products = [];
+    try { const r = await window.storage.get('dispensa-prodotti', false); products = r ? JSON.parse(r.value) : []; } catch (e) {}
+    const now = Date.now();
+    items.forEach((it, i) => {
+      products.push({
+        id: (now + i).toString(36) + Math.random().toString(36).slice(2, 7),
+        name: it.name.trim(), category: it.category, quantity: it.qty,
+        expiryDate: it.date || null, location: it.location, addedAt: new Date().toISOString()
+      });
+    });
+    try { await window.storage.set('dispensa-prodotti', JSON.stringify(products), false); } catch (e) { toast('Errore nel salvataggio'); $('save-btn').disabled = false; return; }
+    await Promise.all(items.map((it) => R.remember(it.code, { name: it.name.trim(), category: it.category, location: it.location, src: 'user' })));
+    toast('✓ ' + total() + ' prodotti nello Stipo');
+    setTimeout(() => { location.href = 'lista-dispensa.html'; }, 700);
+  }
+
+  $('start-btn').addEventListener('click', startScan);
+  $('done-btn').addEventListener('click', goReview);
+  $('more-btn').addEventListener('click', startScan);
+  $('save-btn').addEventListener('click', saveAll);
+  window.addEventListener('pagehide', stopCamera);
+})();
+</script>
+</body>
+</html>

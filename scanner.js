@@ -3,7 +3,7 @@
 (function () {
   window.startBarcodeScan = function (opts) {
     const video = opts.video;
-    let stopped = false, stream = null, timer = null;
+    let stopped = false, stream = null, timer = null, lastText = '', lastTime = 0;
     const status = opts.onStatus || function () {};
 
     function stop() {
@@ -82,6 +82,14 @@
         try {
           const text = await detect();
           if (text && text.length >= 6) {
+            if (opts.continuous) {
+              // modalità cassa: non si ferma, ignora lo stesso codice per 1,8 s
+              const now = Date.now();
+              if (!(lastText === text && now - lastTime < 1800)) opts.onResult(text);
+              lastText = text; lastTime = now;
+              timer = setTimeout(loop, 150);
+              return;
+            }
             stop();
             opts.onResult(text);
             return;

@@ -377,7 +377,7 @@
     padding: 0 10px;
   }
 </style>
-<script src="storage-shim.js?v=6"></script>
+<script src="storage-shim.js?v=7"></script>
 </head>
 <body>
 <div class="app">
@@ -416,6 +416,7 @@
         <p class="urgent-card-sub">Questi prodotti sono i prossimi a scadere</p>
         <div id="urgent-items-list"></div>
         <p class="stipino-line" id="stipino-line" style="display:none;">👀 Partiamo da questi?</p>
+        <a href="lista-dispensa.html" id="pending-note" style="display:none; margin-top:10px; font-size:13px; font-weight:700; color:var(--warning); text-decoration:none;"></a>
       </div>
     </section>
 
@@ -524,12 +525,16 @@
   async function renderUrgentSection() {
     const products = await loadProducts();
     const urgent = products
-      .filter(p => daysUntil(p.expiryDate) <= 7)
+      .filter(p => p.expiryDate && daysUntil(p.expiryDate) <= 7)
       .sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate))
       .slice(0, 3);
 
     const list = document.getElementById('urgent-items-list');
     const stipinoLine = document.getElementById('stipino-line');
+    const pendingNote = document.getElementById('pending-note');
+    const pendingCount = products.filter(p => !p.expiryDate).length;
+    pendingNote.style.display = pendingCount ? 'block' : 'none';
+    pendingNote.textContent = pendingCount ? `📝 ${pendingCount} ${pendingCount === 1 ? 'prodotto senza scadenza' : 'prodotti senza scadenza'} — completa →` : '';
 
     if (urgent.length === 0) {
       list.innerHTML = `<p class="urgent-card-empty">Niente in scadenza a breve, lo Stipo è tranquillo 🌿</p>`;

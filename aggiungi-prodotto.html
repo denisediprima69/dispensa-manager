@@ -598,9 +598,10 @@
     padding: 0 4px;
   }
 </style>
-<script src="storage-shim.js?v=6"></script>
-<script src="scanner.js?v=6"></script>
-<script src="date-reader.js?v=6"></script>
+<script src="storage-shim.js?v=7"></script>
+<script src="scanner.js?v=7"></script>
+<script src="date-reader.js?v=7"></script>
+<script src="product-rules.js?v=7"></script>
 </head>
 <body>
 <div class="app">
@@ -830,7 +831,7 @@
       </div>
 
       <div class="field">
-        <label>Dove si trova</label>
+        <label>Dove lo metto <span style="font-weight:500;color:var(--text-muted);">(scelto in automatico, cambialo se serve)</span></label>
         <div class="location-row" id="location-row">
           <div class="location-pill selected" data-location="frigo">Frigo</div>
           <div class="location-pill" data-location="dispensa">Dispensa</div>
@@ -1321,30 +1322,34 @@
       });
   }
 
-  function lookupOpenFoodFacts(barcode) {
-    barcodeResultText.textContent = 'Codice trovato, cerco il prodotto...';
+  let currentBarcode = null;
 
-    fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 1 && data.product) {
-          const name = data.product.product_name_it || data.product.product_name || '';
-          if (name && !productNameInput.value.trim()) {
-            productNameInput.value = name;
-          }
-          barcodeResultText.textContent = name
-            ? `📦 Riconosciuto: ${name}`
-            : '📦 Barcode letto, ma il prodotto non è nel database — dagli un nome qui sotto';
-          if (name) hideNoDb(); else showNoDb();
-        } else {
-          barcodeResultText.textContent = '📦 Barcode letto, ma il prodotto non è nel database — dagli un nome qui sotto';
-          showNoDb();
-        }
-      })
-      .catch(() => {
-        barcodeResultText.textContent = '📦 Barcode letto, ma la ricerca non è riuscita — dagli un nome qui sotto';
+  function setLocation(loc) {
+    selectedLocation = loc;
+    document.querySelectorAll('.location-pill').forEach((p) => p.classList.toggle('selected', p.dataset.location === loc));
+  }
+
+  function lookupOpenFoodFacts(barcode) {
+    currentBarcode = barcode;
+    barcodeResultText.textContent = 'Codice letto, riconosco il prodotto...';
+
+    window.ProductRules.lookup(barcode).then((info) => {
+      // posizione e categoria scelte in automatico (modificabili più sotto)
+      setLocation(info.location);
+      if (productCategoryInput.querySelector('option[value="' + info.category + '"]')) productCategoryInput.value = info.category;
+      const where = window.ProductRules.LOCATION_ICON[info.location] + ' ' + window.ProductRules.LOCATION_LABEL[info.location];
+      if (info.name) {
+        if (!productNameInput.value.trim()) productNameInput.value = info.name;
+        barcodeResultText.textContent = `📦 ${info.name} → lo metto in ${where}`;
+        hideNoDb();
+      } else {
+        barcodeResultText.textContent = `📦 Prodotto nuovo: dagli un nome qui sotto (lo metto in ${where})`;
         showNoDb();
-      });
+      }
+    }).catch(() => {
+      barcodeResultText.textContent = '📦 Barcode letto, ma non riconosco il prodotto — dagli un nome qui sotto';
+      showNoDb();
+    });
   }
 
   // --- OCR ---
@@ -1618,6 +1623,7 @@
     };
     if (productPhoto) product.photo = productPhoto;
 
+    if (currentBarcode) window.ProductRules.remember(currentBarcode, { name, category: product.category, location: product.location, src: 'user' });
     saveBtn.disabled = true;
     const products = await loadProducts();
     products.push(product);
@@ -1648,6 +1654,7 @@
     newCategoryRow.style.display = 'none';
     productQtyInput.value = '1';
     productDateInput.value = '';
+    currentBarcode = null;
     productPhoto = null; nodbThumb.style.display = 'none'; nodbSuggestions.innerHTML = ''; nodbStatus.textContent = ''; nodbName.value = ''; hideNoDb();
     wizState.y = wizState.m = wizState.d = null; wizState.noDay = false; wizState.step = 'year'; wizRender();
     document.querySelectorAll('.location-pill').forEach(p => p.classList.remove('selected'));

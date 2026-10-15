@@ -15,6 +15,7 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] `lista-dispensa.html` — Lista prodotti raggruppata per zona, modifica prodotto, modale Consumato/Buttato con gestione quantità
 - [x] `lista-spesa.html` — Aggiungi articoli, spunta quando comprati, collegata allo Stipo (banner "Aggiungi allo Stipo" con nome precompilato)
 - [x] `impostazioni.html` — Categorie, preferenze notifiche (UI pronta, motore di invio da collegare), info app, privacy
+- [x] `cassa.html` — **Alla cassa**: scansione continua dei barcode con bip, un prodotto dopo l'altro (i doppioni aumentano la quantità); nome, categoria e posto (frigo/freezer/dispensa) assegnati in automatico da Open Food Facts; scadenze scritte alla fine (`0627`), oppure «Da completare»
 - [x] `metodo-aggiunta.html` — Schermata di scelta tra i 3 metodi di aggiunta prodotto, ciascuno con una breve spiegazione di cosa fotografare e cosa aspettarsi
 - [x] `prodotto-peso.html` — Per prodotti a peso variabile (banco frigo/salumeria): scansiona il barcode GS1-128, se contiene la data di scadenza (Application Identifier 15/17) la estrae in automatico; altrimenti richiede la foto della data come fallback
 - [x] `scontrino.html` — Foto dello scontrino, parsing euristico dei prodotti (regex, nessuna AI esterna), poi per ciascuno: microfono per dettare la scadenza (Web Speech API), pulsanti rapidi (1 settimana / 1 mese / ecc.) o data manuale. Aggiunta in blocco allo Stipo
@@ -29,6 +30,9 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 
 - [x] **Scadenza guidata passo-passo** (anno → mese → giorno, con «Non c'è il giorno» per le date MM-AAAA), scrittura rapida dei numeri (`0627`) e lettura con fotocamera come piano B
 - [x] **Prodotto non nel database**: nome a mano o foto del prodotto (miniatura salvata, lettura del nome dall'etichetta come suggerimento)
+
+- [x] Memoria dei prodotti già visti (`prodotti-noti`): la volta dopo il barcode è riconosciuto subito, anche se non era nel database
+- [x] Prodotti senza scadenza: gruppo «Da completare» in cima alla lista e promemoria in home
 
 ### Ancora da fare (V1)
 
