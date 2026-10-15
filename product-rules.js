@@ -178,6 +178,7 @@
     const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
     el.innerHTML = '<div style="font-weight:800;font-size:15px;">' + title + (name ? ' · ' + esc(name) : '') + '</div>' +
       check.lines.map((l) => '<div>' + esc(l) + '</div>').join('') +
+      '<div style="font-weight:500;font-size:12px;opacity:.9;margin-top:6px;">È solo un consiglio dell\'app: leggi sempre l\'etichetta sulla confezione.</div>' +
       '<button type="button" aria-label="Chiudi" style="position:absolute;right:8px;top:6px;border:0;background:transparent;color:inherit;font-size:24px;line-height:1;cursor:pointer;">×</button>';
     el.querySelector('button').onclick = () => el.remove();
     if (check.level === 'stop' || check.level === 'warn') alertTone();
