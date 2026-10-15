@@ -16,7 +16,7 @@
 .dp .dp-lbl { font-size: 12px; font-weight: 700; color: var(--text-muted); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: .04em; }
 .dp .dp-lbl:first-child { margin-top: 0; }
 .dp .dp-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.dp .dp-chip { flex: 1; min-width: 70px; text-align: center; background: var(--accent-soft); color: var(--accent); border: none; border-radius: 12px; padding: 13px 6px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.dp .dp-chip { flex: 1; min-width: 70px; text-align: center; background: var(--accent-soft); color: var(--accent-ink); border: none; border-radius: 12px; padding: 13px 6px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
 .dp .dp-years { display: flex; gap: 6px; margin-bottom: 8px; }
 .dp .dp-year { padding: 9px 0 !important; font-size: 13px !important; }
 .dp .dp-year { flex: 1; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 11px 0; font-size: 14px; font-weight: 700; color: var(--text-muted); cursor: pointer; font-family: inherit; }
@@ -26,7 +26,7 @@
 .dp .dp-grid.d { grid-template-columns: repeat(7, 1fr); }
 .dp .dp-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 15px 0; font-size: 15.5px; font-weight: 700; color: var(--text); cursor: pointer; font-family: inherit; }
 .dp .dp-btn.s { padding: 11px 0; font-size: 14px; }
-.dp .dp-btn.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dp .dp-btn.sel { background: var(--accent); border-color: var(--accent-ink); color: #fff; }
 .dp .dp-btn:disabled { opacity: .3; }
 .dp .dp-btn:active { background: var(--accent-soft); }
 .dp .dp-nav { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 10px; }
@@ -37,16 +37,16 @@
 .dp .dp-wd span { text-align: center; font-size: 11.5px; font-weight: 700; color: var(--text-muted); }
 .dp .dp-grid.d { gap: 6px; }
 .dp .dp-day { border: none; background: var(--surface); border-radius: 10px; aspect-ratio: 1 / 1; font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; font-family: inherit; border: 1px solid var(--border); padding: 0; }
-.dp .dp-day.today { border-color: var(--accent); color: var(--accent); }
-.dp .dp-day.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dp .dp-day.today { border-color: var(--accent-ink); color: var(--accent-ink); }
+.dp .dp-day.sel { background: var(--accent); border-color: var(--accent-ink); color: #fff; }
 .dp .dp-day:disabled { opacity: .25; }
 .dp .dp-day:active { background: var(--accent-soft); }
-.dp .dp-month-btn { width: 100%; margin-top: 10px; padding: 13px 12px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); border-radius: 12px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; }
+.dp .dp-month-btn { width: 100%; margin-top: 10px; padding: 13px 12px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent-ink); border-radius: 12px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; }
 .dp .dp-month-btn.sel { background: var(--accent); color: #fff; }
 .dp .dp-result { margin-top: 12px; background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.dp .dp-result b { color: var(--accent); font-size: 16px; }
+.dp .dp-result b { color: var(--accent-ink); font-size: 16px; }
 .dp .dp-result small { display: block; color: var(--text-muted); font-size: 12px; }
-.dp .dp-link { background: none; border: none; color: var(--accent); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; text-decoration: underline; padding: 4px; }
+.dp .dp-link { background: none; border: none; color: var(--accent-ink); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; text-decoration: underline; padding: 4px; }
 .dp .dp-type { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; color: var(--text); }
 .dp .dp-fb { font-size: 12.5px; color: var(--text-muted); margin: 6px 0 0; min-height: 16px; }
 .dp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }

@@ -87,13 +87,13 @@
     flex: 1;
     font-size: 12.5px;
     line-height: 1.5;
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   .tip-dismiss {
     background: none;
     border: none;
-    color: var(--accent);
+    color: var(--accent-ink);
     opacity: 0.6;
     font-size: 14px;
     cursor: pointer;
@@ -113,7 +113,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--accent);
+    color: var(--accent-ink);
     background: var(--accent-soft);
     padding: 8px 16px;
     text-align: center;
@@ -187,7 +187,7 @@
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .btn-primary { background: var(--accent); color: white; }
-  .btn-secondary { background: var(--accent-soft); color: var(--accent); }
+  .btn-secondary { background: var(--accent-soft); color: var(--accent-ink); }
   .btn-ghost { background: transparent; color: var(--text-muted); }
 
   .live-scan-wrap {
@@ -250,10 +250,10 @@
   .wiz-title { font-size: 18px; margin: 0 0 12px; }
   .wiz-summary { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
   .wiz-part { flex: 1; border: 1.5px dashed var(--border); background: var(--surface); border-radius: 10px; padding: 10px 4px; font-size: 14px; font-weight: 700; color: var(--text-muted); cursor: pointer; font-family: inherit; }
-  .wiz-part.active { border-style: solid; border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .wiz-part.active { border-style: solid; border-color: var(--accent-ink); color: var(--accent-ink); background: var(--accent-soft); }
   .wiz-part.filled { border-style: solid; border-color: var(--border); color: var(--text); }
   .wiz-sep { color: var(--text-muted); font-weight: 700; }
-  .wiz-msg { font-size: 15px; font-weight: 700; color: var(--accent); margin: 0 0 10px; }
+  .wiz-msg { font-size: 15px; font-weight: 700; color: var(--accent-ink); margin: 0 0 10px; }
   .wiz-hint { font-size: 12.5px; color: var(--text-muted); margin: 0 0 10px; }
   .wiz-grid { display: grid; gap: 8px; }
   .wiz-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
@@ -261,11 +261,11 @@
   .wiz-grid.cols-7 { grid-template-columns: repeat(7, 1fr); }
   .wiz-btn { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 700; color: var(--text); cursor: pointer; font-family: inherit; }
   .wiz-btn.small { padding: 11px 0; font-size: 14px; }
-  .wiz-btn:active { background: var(--accent-soft); border-color: var(--accent); }
+  .wiz-btn:active { background: var(--accent-soft); border-color: var(--accent-ink); }
   .wiz-btn:disabled { opacity: .35; }
-  .wiz-skip { margin-top: 10px; width: 100%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .wiz-skip { margin-top: 10px; width: 100%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent-ink); border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .wiz-done { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--accent-soft); border-radius: 12px; padding: 14px; }
-  .wiz-done b { font-size: 17px; color: var(--accent); }
+  .wiz-done b { font-size: 17px; color: var(--accent-ink); }
   .wiz-extra { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
   .wiz-extra input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; }
   .planb-wrap { padding: 4px 16px 14px; text-align: center; }
@@ -318,7 +318,7 @@
     align-items: center;
     padding: 10px 16px;
     font-size: 12.5px;
-    color: var(--accent);
+    color: var(--accent-ink);
     background: var(--accent-soft);
   }
 
@@ -326,7 +326,7 @@
     width: 15px;
     height: 15px;
     border: 2px solid var(--border);
-    border-top-color: var(--accent);
+    border-top-color: var(--accent-ink);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
     flex-shrink: 0;
@@ -393,7 +393,7 @@
 
   .date-chip {
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
     border: 1px solid transparent;
     border-radius: 999px;
     padding: 7px 14px;
@@ -412,7 +412,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: 700;
     font-size: 14px;
   }
@@ -521,9 +521,9 @@
   }
 
   .location-pill.selected {
-    border-color: var(--accent);
+    border-color: var(--accent-ink);
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
   }
 
   /* --- Toast --- */
@@ -578,7 +578,7 @@
     padding: 4px 9px;
     border-radius: 999px;
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
     white-space: nowrap;
   }
 
@@ -603,6 +603,9 @@
 <script src="date-reader.js?v=7"></script>
 <script src="product-rules.js?v=7"></script>
 <script src="date-picker.js?v=9"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css?v=1">
 </head>
 <body>
 <div class="app">

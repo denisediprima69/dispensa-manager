@@ -27,7 +27,7 @@
   main { flex: 1; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 14px; }
   .btn { border: none; border-radius: 12px; padding: 15px 18px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; }
   .btn-primary { background: var(--accent); color: #fff; }
-  .btn-secondary { background: var(--accent-soft); color: var(--accent); }
+  .btn-secondary { background: var(--accent-soft); color: var(--accent-ink); }
   .btn-ghost { background: transparent; color: var(--text-muted); font-weight: 600; }
   .btn:disabled { opacity: .5; }
 
@@ -51,13 +51,13 @@
   .scan-row .ico { font-size: 20px; }
   .scan-row .nm { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .scan-row .nm.unk { color: var(--warning); }
-  .scan-row .qt { background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; }
+  .scan-row .qt { background: var(--accent-soft); color: var(--accent-ink); font-weight: 800; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; }
   .scan-row button { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 2px 6px; }
 
   .sticky-bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bg) 35%); z-index: 20; }
   .sticky-inner { width: 100%; max-width: 448px; display: flex; flex-direction: column; gap: 6px; }
 
-  .note { background: var(--accent-soft); color: var(--accent); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+  .note { background: var(--accent-soft); color: var(--accent-ink); border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.45; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
   .card input[type=text], .card select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; color: var(--text); }
   .card input.need { border-color: var(--warning); background: var(--warning-soft); }
@@ -67,17 +67,20 @@
   .stepper b { min-width: 22px; text-align: center; }
   .pills { display: flex; gap: 6px; flex: 1; justify-content: flex-end; }
   .pill { border: 1px solid var(--border); background: #fff; border-radius: 10px; padding: 8px 0; flex: 1; text-align: center; font-size: 17px; cursor: pointer; }
-  .pill.sel { background: var(--accent-soft); border-color: var(--accent); }
+  .pill.sel { background: var(--accent-soft); border-color: var(--accent-ink); }
   .lbl { font-size: 12px; font-weight: 700; color: var(--text-muted); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
   .fb { font-size: 12.5px; color: var(--text-muted); min-height: 16px; margin: 0; }
-  .fb.ok { color: var(--accent); font-weight: 700; }
+  .fb.ok { color: var(--accent-ink); font-weight: 700; }
   .date-btn { width: 100%; border: 1.5px dashed var(--warning); background: var(--warning-soft); color: var(--warning); border-radius: 12px; padding: 14px; font-size: 14.5px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-  .date-btn.set { border: 1.5px solid var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .date-btn.set { border: 1.5px solid var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
   .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
   .toast.show { opacity: 1; }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css?v=1">
 </head>
 <body>
 <div class="app">

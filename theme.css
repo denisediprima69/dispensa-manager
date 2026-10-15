@@ -1,0 +1,59 @@
+/* Tema Lo Stipo: crema, arancio, azzurro polvere. Caricato dopo gli stili di ogni pagina. */
+:root {
+  --bg: #FAF3E3;
+  --surface: #FFFDF7;
+  --border: #E8DCC3;
+  --text: #3B3A4A;
+  --text-muted: #7B7568;
+
+  --accent: #E37434;        /* azioni principali (riempimenti) */
+  --accent-ink: #B8541B;    /* testo/icone arancio su fondo chiaro (più scuro per la leggibilità) */
+  --accent-soft: #FBE5D4;
+
+  --blue: #A8C0D8;
+  --blue-deep: #6F94BA;
+  --blue-soft: #E3ECF5;
+
+  --ok: #6F94BA;            /* "tutto ok" = azzurro */
+  --ok-ink: #3F6A94;
+  --ok-soft: #E3ECF5;
+  --warning: #A9741A;
+  --warning-soft: #FAEBC9;
+  --danger: #A63A40;
+  --danger-soft: #F6DFDD;
+
+  --radius: 18px;
+  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-title: 'Caveat Brush', 'Nunito', cursive;
+  --shadow-card: 0 2px 0 rgba(59, 58, 74, .05), 0 10px 22px rgba(59, 58, 74, .07);
+  font-family: var(--font-body);
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); }
+input, select, textarea, button { font-family: inherit; }
+
+h1, h2, h3, .zone-header h2, .eco-stat .num, .chart-title { font-family: var(--font-title); font-weight: 400; letter-spacing: .01em; }
+header h1 { font-size: 24px; }
+h2 { font-size: 1.15em; }
+
+/* quadretti azzurri (gingham) sotto le intestazioni */
+header::after {
+  content: ''; display: block; height: 10px; margin: 14px -20px -16px;
+  background-color: var(--surface);
+  background-image: linear-gradient(90deg, rgba(168,192,216,.65) 50%, transparent 50%), linear-gradient(rgba(168,192,216,.65) 50%, transparent 50%);
+  background-size: 14px 14px;
+}
+
+/* schede morbide */
+.method-card, .chart-card, .card, .product-row, .item-row, .urgent-card, .eco-card, .intro, .scan-row, .tutorial-step, .step-card, .form-card {
+  box-shadow: var(--shadow-card);
+}
+.method-card, .chart-card, .card, .intro, .form-card, .urgent-card { border-radius: var(--radius); }
+
+/* bottoni a pillola */
+.btn, .btn-primary, .btn-secondary { border-radius: 999px; }
+
+/* stati: verde -> azzurro */
+.status-dot.ok { background: var(--ok) !important; }
+.badge.ok { background: var(--ok-soft) !important; color: var(--ok-ink) !important; }
+.chart-seg-saved { background: var(--ok) !important; }

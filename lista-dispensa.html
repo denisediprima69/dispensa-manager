@@ -106,7 +106,7 @@
 
   .sort-tab.active {
     background: var(--accent);
-    border-color: var(--accent);
+    border-color: var(--accent-ink);
     color: white;
   }
 
@@ -182,7 +182,7 @@
   }
 
   .check-btn:hover {
-    border-color: var(--accent);
+    border-color: var(--accent-ink);
   }
 
   .check-btn svg {
@@ -254,7 +254,7 @@
     flex-shrink: 0;
   }
 
-  .badge.ok { background: var(--accent-soft); color: var(--accent); }
+  .badge.ok { background: var(--accent-soft); color: var(--accent-ink); }
   .badge.warning { background: var(--warning-soft); color: var(--warning); }
   .badge.urgent { background: var(--danger-soft); color: var(--danger); }
   .badge.expired { background: var(--danger); color: white; }
@@ -515,7 +515,7 @@
     cursor: pointer;
   }
 
-  .consume-saved { background: var(--accent-soft); color: var(--accent); }
+  .consume-saved { background: var(--accent-soft); color: var(--accent-ink); }
   .consume-wasted { background: var(--danger-soft); color: var(--danger); }
   .toast {
     position: fixed;
@@ -551,6 +551,9 @@
   }
 </style>
 <script src="storage-shim.js?v=7"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css?v=1">
 </head>
 <body>
 <div class="app">
@@ -558,7 +561,7 @@
     <a href="index.html" style="font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600;">← Home</a>
     <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
       <h1 style="margin:0;">Lo Stipo</h1>
-      <a href="lista-spesa.html" style="font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 700; background: var(--accent-soft); padding: 6px 12px; border-radius: 999px;">🛒 Spesa</a>
+      <a href="lista-spesa.html" style="font-size: 12px; color: var(--accent-ink); text-decoration: none; font-weight: 700; background: var(--accent-soft); padding: 6px 12px; border-radius: 999px;">🛒 Spesa</a>
     </div>
     <div class="summary-bar">
       <div class="summary-pill">

@@ -147,7 +147,7 @@
   .spinner {
     width: 16px; height: 16px;
     border: 2px solid var(--border);
-    border-top-color: var(--accent);
+    border-top-color: var(--accent-ink);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
     flex-shrink: 0;
@@ -230,7 +230,7 @@
 
   .quick-date-chip.selected {
     background: var(--accent);
-    border-color: var(--accent);
+    border-color: var(--accent-ink);
     color: white;
   }
 
@@ -276,7 +276,7 @@
 
   .mic-feedback {
     font-size: 12px;
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: 600;
   }
   .mic-feedback.error { color: var(--text-muted); font-weight: 500; }
@@ -290,6 +290,9 @@
   }
 </style>
 <script src="storage-shim.js?v=7"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css?v=1">
 </head>
 <body>
 <div class="app">

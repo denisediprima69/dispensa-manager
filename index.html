@@ -134,7 +134,7 @@
   .btn:active { transform: scale(0.98); }
 
   .btn-primary { background: var(--accent); color: white; }
-  .btn-secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--border); }
+  .btn-secondary { background: var(--surface); color: var(--accent-ink); border: 1px solid var(--border); }
 
   /* --- Da salvare oggi --- */
   .urgent-card {
@@ -205,7 +205,7 @@
 
   .stipino-line {
     font-size: 12.5px;
-    color: var(--accent);
+    color: var(--accent-ink);
     font-weight: 600;
     margin: 14px 0 0;
     padding-top: 12px;
@@ -245,7 +245,7 @@
     min-width: 30px;
     border-radius: 50%;
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-ink);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -395,6 +395,9 @@
   }
 </style>
 <script src="storage-shim.js?v=7"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css?v=1">
 </head>
 <body>
 <div class="app">
@@ -470,7 +473,7 @@
         <h2>Salvati e buttati, settimana per settimana</h2>
         <p class="chart-sub" id="chart-sub">Ogni volta che segni un prodotto come consumato o buttato, compare qui.</p>
         <div class="chart-bars" id="chart-bars"></div>
-        <div class="chart-legend"><span><i style="background:var(--accent)"></i>Salvati</span><span><i style="background:var(--danger)"></i>Buttati</span></div>
+        <div class="chart-legend"><span><i style="background:var(--ok)"></i>Salvati</span><span><i style="background:var(--danger)"></i>Buttati</span></div>
         <div class="chart-now"><span>In scadenza nei prossimi 7 giorni</span><b id="chart-expiring">0</b></div>
       </div>
     </section>
