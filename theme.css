@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'Coyote';
+  src: local('Coyote'), url('assets/fonts/Coyote.woff2') format('woff2'), url('assets/fonts/Coyote.otf') format('opentype'), url('assets/fonts/Coyote.ttf') format('truetype');
+  font-display: swap;
+}
+
 /* Tema Lo Stipo: crema, arancio, azzurro polvere. Caricato dopo gli stili di ogni pagina. */
 :root {
   --bg: #FAF3E3;
@@ -23,8 +29,8 @@
   --danger-soft: #F6DFDD;
 
   --radius: 18px;
-  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-title: 'Caveat Brush', 'Nunito', cursive;
+  --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-title: 'Coyote', 'Amatic SC', cursive;   /* Coyote: carica il file in assets/fonts/; fino ad allora si usa Amatic SC */
   --shadow-card: 0 2px 0 rgba(59, 58, 74, .05), 0 10px 22px rgba(59, 58, 74, .07);
   font-family: var(--font-body);
 }
@@ -33,8 +39,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-body);
 input, select, textarea, button { font-family: inherit; }
 
 h1, h2, h3, .zone-header h2, .eco-stat .num, .chart-title { font-family: var(--font-title); font-weight: 400; letter-spacing: .01em; }
-header h1 { font-size: 24px; }
-h2 { font-size: 1.15em; }
+header h1 { font-size: 30px; line-height: 1.05; }
+h2 { font-size: 1.35em; line-height: 1.1; }
+h1, h2, h3 { font-weight: 700; }
 
 /* quadretti azzurri (gingham) sotto le intestazioni */
 header::after {

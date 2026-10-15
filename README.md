@@ -35,7 +35,9 @@ Costruita come **web app / PWA**: un solo codice funziona sia su iOS che su Andr
 - [x] Memoria dei prodotti già visti (`prodotti-noti`): la volta dopo il barcode è riconosciuto subito, anche se non era nel database
 - [x] Prodotti senza scadenza: gruppo «Da completare» in cima alla lista e promemoria in home
 
-- [x] **Tema** (`theme.css`): crema `#FAF3E3`, arancio `#E37434`, azzurro `#A8C0D8`; font Caveat Brush (titoli) + Nunito (testo); schede morbide, bottoni a pillola, quadretti azzurri sotto le intestazioni. Stati: azzurro = ok, ocra = attenzione, rosso = urgente. Le icone (emoji) sono provvisorie, da sostituire con i disegni di Dede
+- [x] **Tema** (`theme.css`): crema `#FAF3E3`, arancio `#E37434`, azzurro `#A8C0D8`; font Poppins (testo) + Coyote per i titoli (file da caricare in `assets\/fonts\/`; nel frattempo Amatic SC); schede morbide, bottoni a pillola, quadretti azzurri sotto le intestazioni. Stati: azzurro = ok, ocra = attenzione, rosso = urgente. Le icone (emoji) sono provvisorie, da sostituire con i disegni di Dede
+
+- [x] **Logo** (`assets/logo.svg`) nella home, favicon, icone dell'app (`assets/icon-*.png`) e `manifest.webmanifest` per l'installazione come app
 
 ### Ancora da fare (V1)
 
