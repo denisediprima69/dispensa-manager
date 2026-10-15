@@ -322,6 +322,8 @@
     background: var(--accent-soft);
   }
 
+  .barcode-status.found { background: var(--blue-soft, #E3ECF5); color: #3F6A93; font-size: 14px; font-weight: 700; }
+
   .spinner {
     width: 15px;
     height: 15px;
@@ -1223,6 +1225,7 @@
 
   function lookupOpenFoodFacts(barcode) {
     currentBarcode = barcode;
+    barcodeResultStatus.classList.remove('found');
     barcodeResultText.textContent = 'Codice letto, riconosco il prodotto...';
 
     window.ProductRules.lookup(barcode).then((info) => {
@@ -1235,6 +1238,7 @@
       const where = window.ProductRules.LOCATION_ICON[info.location] + ' ' + window.ProductRules.LOCATION_LABEL[info.location];
       if (info.name) {
         if (!productNameInput.value.trim()) productNameInput.value = info.name;
+        barcodeResultStatus.classList.add('found');
         barcodeResultText.textContent = `📦 ${info.name} → lo metto in ${where}`;
         hideNoDb();
       } else {

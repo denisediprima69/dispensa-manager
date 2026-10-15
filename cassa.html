@@ -41,6 +41,7 @@
   .target { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 76%; height: 32%; border: 2px solid #fff; border-radius: 12px; box-shadow: 0 0 0 2000px rgba(0,0,0,.32); pointer-events: none; transition: border-color .15s; }
   .target.hit { border-color: #5BE08F; }
   .counter { position: absolute; top: 10px; right: 10px; background: var(--accent); color: #fff; font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+  .flash.found { background: #4F7BA6; }
   .flash { position: absolute; left: 10px; right: 10px; bottom: 10px; background: rgba(0,0,0,.72); color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity .2s; }
   .flash.show { opacity: 1; }
   .status { font-size: 12.5px; color: var(--text-muted); text-align: center; }
@@ -163,8 +164,8 @@
 
   // ---------- scansione ----------
   let flashTimer = null;
-  function flash(msg) {
-    const f = $('flash'); f.textContent = msg; f.classList.add('show');
+  function flash(msg, found) {
+    const f = $('flash'); f.textContent = msg; f.classList.toggle('found', !!found); f.classList.add('show');
     $('target').classList.add('hit');
     clearTimeout(flashTimer);
     flashTimer = setTimeout(() => { f.classList.remove('show'); $('target').classList.remove('hit'); }, 1300);
@@ -213,7 +214,7 @@
         R.showDietAlert(info.name, chk);
         renderScanList();
       });
-      flash(info.name ? '✓ ' + info.name + ' → ' + R.LOCATION_LABEL[info.location] : 'Prodotto nuovo: lo nomini alla fine');
+      flash(info.name ? '✓ ' + info.name + ' → ' + R.LOCATION_LABEL[info.location] : 'Prodotto nuovo: lo nomini alla fine', !!info.name);
       renderScanList();
     });
   }
