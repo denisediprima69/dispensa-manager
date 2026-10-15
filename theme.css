@@ -39,9 +39,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-body);
 input, select, textarea, button { font-family: inherit; }
 
 h1, h2, h3, .zone-header h2, .eco-stat .num, .chart-title { font-family: var(--font-title); font-weight: 400; letter-spacing: .01em; }
-header h1 { font-size: 30px; line-height: 1.05; }
-h2 { font-size: 1.35em; line-height: 1.1; }
-h1, h2, h3 { font-weight: 700; }
+/* Titoli sempre più grandi del testo (Poppins ~14-15px). Ritoccare qui quando arriva Coyote. */
+:root { --fs-h1: 36px; --fs-h2: 27px; --fs-h3: 23px; --fs-num: 34px; }
+h1 { font-size: var(--fs-h1) !important; line-height: 1.05 !important; font-weight: 700; }
+h2 { font-size: var(--fs-h2) !important; line-height: 1.1 !important; font-weight: 700; }
+h3 { font-size: var(--fs-h3) !important; line-height: 1.1 !important; font-weight: 700; }
+.eco-stat .num, .stat-num, .stat .num { font-size: var(--fs-num) !important; line-height: 1 !important; font-weight: 700; }
+.sr-only { font-size: 1px !important; }
 
 /* quadretti azzurri (gingham) sotto le intestazioni */
 header::after {

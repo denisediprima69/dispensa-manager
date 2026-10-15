@@ -78,10 +78,10 @@
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type = 'square'; o.frequency.value = 1750;
       g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+      g.gain.exponentialRampToValueAtTime(0.75, audioCtx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.16);
       o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + 0.13);
+      o.start(); o.stop(audioCtx.currentTime + 0.17);
     } catch (e) {}
     try { if (navigator.vibrate) navigator.vibrate(50); } catch (e) {}
   }
