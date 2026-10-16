@@ -553,7 +553,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="theme.css?v=5">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -565,7 +565,7 @@
     <a href="index.html" style="font-size: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600;">← Home</a>
     <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
       <h1 style="margin:0;">Lo Stipo</h1>
-      <a href="lista-spesa.html" style="font-size: 12px; color: var(--accent-ink); text-decoration: none; font-weight: 700; background: var(--accent-soft); padding: 6px 12px; border-radius: 999px;">🛒 Spesa</a>
+      <a href="lista-spesa.html" style="font-size: 12px; color: var(--accent-ink); text-decoration: none; font-weight: 700; background: var(--accent-soft); padding: 6px 12px; border-radius: 999px;"><img class="ic" src="assets/icons/carrello.svg" alt=""> Spesa</a>
     </div>
     <div class="summary-bar">
       <div class="summary-pill">
@@ -593,7 +593,7 @@
   <div class="modal-sheet">
     <div class="modal-header">
       <h3 id="consume-product-name">Prodotto</h3>
-      <button class="modal-close" id="consume-close-btn">✕</button>
+      <button class="modal-close" id="consume-close-btn" aria-label="Chiudi"><img class="ic" src="assets/icons/chiudi.svg" alt=""></button>
     </div>
     <div id="consume-qty-row" class="consume-qty-row" style="display:none;">
       <p class="consume-qty-label">Quante unità?</p>
@@ -606,10 +606,10 @@
     <p class="consume-question">Come vuoi segnarlo?</p>
     <div class="consume-actions">
       <button class="consume-action-btn consume-saved" id="mark-consumed-btn">
-        ✅ Consumato
+        <img class="ic" src="assets/icons/consumato.svg" alt=""> Consumato
       </button>
       <button class="consume-action-btn consume-wasted" id="mark-wasted-btn">
-        🗑️ Buttato
+        <img class="ic" src="assets/icons/buttato.svg" alt=""> Buttato
       </button>
     </div>
   </div>
@@ -619,7 +619,7 @@
   <div class="modal-sheet">
     <div class="modal-header">
       <h3>Modifica prodotto</h3>
-      <button class="modal-close" id="modal-close-btn">✕</button>
+      <button class="modal-close" id="modal-close-btn" aria-label="Chiudi"><img class="ic" src="assets/icons/chiudi.svg" alt=""></button>
     </div>
     <div class="modal-field">
       <label for="edit-name">Nome prodotto</label>
@@ -705,10 +705,10 @@
   let editingId = null;
 
   const ZONES = [
-    { key: 'frigo', label: 'Frigo', icon: '❄️' },
-    { key: 'freezer', label: 'Freezer', icon: '🧊' },
-    { key: 'dispensa', label: 'Dispensa', icon: '🥫' },
-    { key: 'cantina', label: 'Cantina', icon: '🍷' }
+    { key: 'frigo', label: 'Frigo', icon: '<img class="ic" src="assets/icons/frigo.svg" alt="">' },
+    { key: 'freezer', label: 'Freezer', icon: '<img class="ic" src="assets/icons/freezer.svg" alt="">' },
+    { key: 'dispensa', label: 'Dispensa', icon: '<img class="ic" src="assets/icons/credenza.svg" alt="">' },
+    { key: 'cantina', label: 'Cantina', icon: '<img class="ic" src="assets/icons/cantina.svg" alt="">' }
   ];
 
   let sortMode = 'zone';
@@ -929,7 +929,7 @@
     if (products.length === 0) {
       mainContent.innerHTML = `
         <div class="global-empty">
-          <div class="icon">🥗</div>
+          <div class="icon"><img class="ic" src="assets/icons/dispensa-aperta.svg" alt=""></div>
           <h2>La dispensa è vuota</h2>
           <p>Aggiungi il tuo primo prodotto con il pulsante + qui sotto, così iniziamo a tenerlo d'occhio</p>
         </div>
@@ -942,7 +942,7 @@
       mainContent.innerHTML = `
         <div class="zone-section">
           <div class="zone-header">
-            <div class="zone-icon">📅</div>
+            <div class="zone-icon"><img class="ic" src="assets/icons/calendario.svg" alt=""></div>
             <h2>Tutti i prodotti</h2>
             <span class="zone-count">${sorted.length}</span>
           </div>
@@ -971,7 +971,7 @@
       });
       mainContent.innerHTML = html || `
         <div class="global-empty">
-          <div class="icon">🥗</div>
+          <div class="icon"><img class="ic" src="assets/icons/dispensa-aperta.svg" alt=""></div>
           <h2>La dispensa è vuota</h2>
           <p>Aggiungi il tuo primo prodotto con il pulsante + qui sotto</p>
         </div>

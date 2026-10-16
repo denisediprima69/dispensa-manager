@@ -298,7 +298,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="theme.css?v=5">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -324,7 +324,7 @@
 
 <div class="stipo-banner" id="add-to-stipo-banner">
   <span id="add-to-stipo-text"></span>
-  <a href="aggiungi-prodotto.html" id="add-to-stipo-btn" class="stipo-banner-btn">📷 Aggiungi allo Stipo</a>
+  <a href="aggiungi-prodotto.html" id="add-to-stipo-btn" class="stipo-banner-btn"><img class="ic" src="assets/icons/fotocamera.svg" alt=""> Aggiungi allo Stipo</a>
 </div>
 
 <script>
@@ -364,7 +364,7 @@
     if (items.length === 0) {
       listContent.innerHTML = `
         <div class="empty-state">
-          <div class="icon">🛒</div>
+          <div class="icon"><img class="ic" src="assets/icons/carrello.svg" alt=""></div>
           <h2>La lista è vuota</h2>
           <p>Aggiungi qui sopra i prodotti che ti servono per la prossima spesa</p>
         </div>

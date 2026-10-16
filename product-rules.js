@@ -204,6 +204,7 @@
 
   const LOCATION_LABEL = { frigo: 'Frigo', freezer: 'Freezer', dispensa: 'Dispensa', cantina: 'Cantina' };
   const LOCATION_ICON = { frigo: '❄️', freezer: '🧊', dispensa: '🥫', cantina: '🍷' };
+  const LOCATION_IMG = { frigo: '<img class="ic" src="assets/icons/frigo.svg" alt="">', freezer: '<img class="ic" src="assets/icons/freezer.svg" alt="">', dispensa: '<img class="ic" src="assets/icons/credenza.svg" alt="">', cantina: '<img class="ic" src="assets/icons/cantina.svg" alt="">' };
 
-  window.ProductRules = { inferFromOFF, lookup, remember, beep, dietFromOFF, weightFromOFF, dietPrefs, saveDietPrefs, dietCheck, showDietAlert, LOCATION_LABEL, LOCATION_ICON };
+  window.ProductRules = { inferFromOFF, lookup, remember, beep, dietFromOFF, weightFromOFF, dietPrefs, saveDietPrefs, dietCheck, showDietAlert, LOCATION_LABEL, LOCATION_ICON, LOCATION_IMG };
 })();

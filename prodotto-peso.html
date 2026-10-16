@@ -245,7 +245,7 @@
 <script src="scanner.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="theme.css?v=5">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -265,7 +265,7 @@
     <div id="step1">
       <div class="capture-card">
         <div id="capture-empty-state" class="capture-empty">
-          <div class="capture-icon">⚖️</div>
+          <div class="capture-icon"><img class="ic ic-lg" src="assets/icons/quantita.svg" alt=""></div>
           <h2>Scansiona il barcode della bilancia</h2>
           <p>Quello con peso e prezzo stampati, di solito sopra o sotto il codice a barre</p>
           <button type="button" id="start-live-scan-btn" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">
@@ -297,11 +297,11 @@
           </div>
 
           <div id="gs1-found-panel" class="gs1-found-panel" style="display:none;">
-            <div class="gs1-badge">📦 Trovata nel codice</div>
+            <div class="gs1-badge"><img class="ic" src="assets/icons/scatola.svg" alt=""> Trovata nel codice</div>
             <div class="gs1-date-big" id="gs1-date-text">—</div>
             <p class="gs1-question">È la data di scadenza corretta?</p>
             <div class="confirm-actions">
-              <button class="btn btn-primary btn-confirm" id="gs1-yes-btn">✓ Sì, usa questa</button>
+              <button class="btn btn-primary btn-confirm" id="gs1-yes-btn"><img class="ic" src="assets/icons/conferma.svg" alt=""> Sì, usa questa</button>
               <button class="btn btn-secondary btn-confirm" id="gs1-no-btn">Fotografa la data</button>
             </div>
           </div>
@@ -316,7 +316,7 @@
     <div id="step2" style="display:none;">
       <div class="capture-card">
         <div id="date-empty-state" class="capture-empty">
-          <div class="capture-icon">📅</div>
+          <div class="capture-icon"><img class="ic ic-lg" src="assets/icons/calendario.svg" alt=""></div>
           <h2>Fotografa la data di scadenza</h2>
           <p>Il codice non conteneva una data leggibile — fotografa la data stampata sull'etichetta</p>
           <label for="date-input" class="btn btn-primary" style="width:auto; padding-left:24px; padding-right:24px;">

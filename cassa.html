@@ -81,7 +81,7 @@
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="theme.css?v=5">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -91,14 +91,14 @@
 <div class="app">
   <header>
     <a href="metodo-aggiunta.html">← Indietro</a>
-    <h1>🛒 Alla cassa</h1>
+    <h1><img class="ic ic-h1" src="assets/icons/cassa.svg" alt=""> Alla cassa</h1>
     <p id="head-sub">Passa i prodotti davanti alla fotocamera: ad ogni bip è aggiunto</p>
   </header>
 
   <main>
     <!-- 1. Intro -->
     <section id="view-intro" class="intro">
-      <div class="icon">📡</div>
+      <div class="icon"><img class="ic ic-xl" src="assets/icons/cassa.svg" alt=""></div>
       <h2>Scansiona tutta la spesa in una volta</h2>
       <p>Come fa la cassiera: appoggia i prodotti sul tavolo e passa il barcode davanti alla fotocamera. Io riconosco il prodotto, lo metto in frigo, freezer o dispensa e conto i doppioni. Le scadenze le scrivi alla fine, tutte insieme.</p>
       <button class="btn btn-primary" id="start-btn">▶ Inizia a scansionare</button>
@@ -119,7 +119,7 @@
 
     <!-- 3. Revisione -->
     <section id="view-review" style="display:none; flex-direction:column; gap:12px;">
-      <div class="note">📅 Tocca <b>Scadenza</b> su ogni prodotto: di solito basta scegliere mese e anno (un tocco). Puoi anche saltarla: il prodotto finisce in «Da completare» e la aggiungi dopo.</div>
+      <div class="note"><img class="ic" src="assets/icons/calendario.svg" alt=""> Tocca <b>Scadenza</b> su ogni prodotto: di solito basta scegliere mese e anno (un tocco). Puoi anche saltarla: il prodotto finisce in «Da completare» e la aggiungi dopo.</div>
       <div id="review-list" style="display:flex; flex-direction:column; gap:12px;"></div>
     </section>
   </main>
@@ -178,7 +178,7 @@
     $('scan-list').innerHTML = items.slice().reverse().map((it) => {
       const unk = !it.loading && !it.name;
       return '<div class="scan-row" data-code="' + esc(it.code) + '">' +
-        '<span class="ico">' + (it.loading ? '⏳' : R.LOCATION_ICON[it.location] || '📦') + '</span>' +
+        '<span class="ico">' + (it.loading ? '⏳' : R.LOCATION_IMG[it.location] || '<img class="ic" src="assets/icons/scatola.svg" alt="">') + '</span>' +
         '<span class="nm ' + (unk ? 'unk' : '') + '">' + (it.loading ? 'Riconosco il prodotto…' : (unk ? 'Prodotto nuovo — lo nomini dopo' : esc(it.name))) + '</span>' +
         (it.qty > 1 ? '<span class="qt">×' + it.qty + '</span>' : '') +
         '<button aria-label="Rimuovi">×</button></div>';
@@ -260,12 +260,12 @@
       card.innerHTML =
         '<input type="text" class="name-in ' + (it.name ? '' : 'need') + '" placeholder="Come si chiama? (es. Latte Nesquik)" value="' + esc(it.name).replace(/"/g, '&quot;') + '">' +
         '<div class="row"><div class="stepper"><button type="button" class="minus">−</button><b class="qv">' + it.qty + '</b><button type="button" class="plus">+</button></div>' +
-        '<div class="pills">' + LOCATIONS.map((l) => '<div class="pill ' + (it.location === l ? 'sel' : '') + '" data-l="' + l + '" title="' + R.LOCATION_LABEL[l] + '">' + R.LOCATION_ICON[l] + '</div>').join('') + '</div></div>' +
+        '<div class="pills">' + LOCATIONS.map((l) => '<div class="pill ' + (it.location === l ? 'sel' : '') + '" data-l="' + l + '" title="' + R.LOCATION_LABEL[l] + '">' + R.LOCATION_IMG[l] + '</div>').join('') + '</div></div>' +
         '<div class="lbl loc-lbl">Lo metto in: ' + R.LOCATION_LABEL[it.location] + '</div>' +
         (it.dietLevel && it.dietLevel !== 'none' ? '<div class="lbl" style="color:' + (it.dietLevel === 'stop' ? 'var(--danger)' : 'var(--warning)') + ';font-weight:700;">⚠️ ' + esc(it.dietTags.join(', ')) + '</div>' : '') +
         '<input type="text" class="weight-in" placeholder="Peso (es. 500 g)" maxlength="24" value="' + esc(it.weight).replace(/"/g, '&quot;') + '" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font:inherit;font-size:13.5px;margin:6px 0;">' +
         '<select class="cat-in">' + catOptions(it.category) + '</select>' +
-        '<button type="button" class="date-btn"><span>📅 Scadenza</span><span class="dv">Scegli →</span></button>';
+        '<button type="button" class="date-btn"><span><img class="ic" src="assets/icons/calendario.svg" alt=""> Scadenza</span><span class="dv">Scegli →</span></button>';
       const q = (s) => card.querySelector(s);
       q('.name-in').addEventListener('input', (e) => { it.name = e.target.value; e.target.classList.toggle('need', !it.name.trim()); });
       q('.minus').addEventListener('click', () => { if (it.qty > 1) { it.qty--; q('.qv').textContent = it.qty; } });

@@ -61,10 +61,10 @@
 
   .settings-link {
     position: absolute;
-    top: 16px;
+    top: 14px;
     right: 0;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -74,11 +74,7 @@
     text-decoration: none;
   }
 
-  .settings-link svg {
-    width: 18px;
-    height: 18px;
-    stroke: var(--text-muted);
-  }
+  .settings-link img { width: 30px; height: 30px; }
 
   .hero-logo { height: 150px; width: auto; display: block; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -419,7 +415,8 @@
   }
   .tile:active { transform: scale(.97); }
   .tile.wide { grid-column: 1 / -1; min-height: 132px; }
-  .tile-emoji { position: absolute; top: 24px; right: 16px; font-size: 30px; line-height: 1; }
+  .tile-ic { position: absolute; top: 22px; right: 12px; width: 40px; height: 40px; }
+  .tile.wide .tile-ic { top: 26px; width: 64px; height: 64px; }
   .tile-title { font-family: var(--font-title); font-size: 30px; font-weight: 700; line-height: 1; }
   .tile-sub { font-size: 12.5px; font-weight: 500; opacity: .92; line-height: 1.3; }
   .tile-blue { background: #5B84AD; }
@@ -444,7 +441,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="theme.css?v=5">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -476,10 +473,7 @@
 
     <section class="hero">
       <a href="impostazioni.html" class="settings-link" aria-label="Impostazioni">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
+        <img src="assets/icons/impostazioni.svg" alt="">
       </a>
       <img src="assets/logo.svg" alt="Lo Stipo" class="hero-logo">
       <h1 class="sr-only">Lo Stipo</h1>
@@ -487,17 +481,17 @@
 
       <div class="tiles">
         <a href="lista-dispensa.html" class="tile tile-blue wide">
-          <span class="tile-emoji" aria-hidden="true">🗄️</span>
+          <img class="tile-ic" src="assets/icons/dispensa-aperta.svg" alt="">
           <span class="tile-title">Vai allo Stipo</span>
           <span class="tile-sub">Tutto quello che hai in casa</span>
         </a>
         <a href="metodo-aggiunta.html" class="tile tile-orange">
-          <span class="tile-emoji" aria-hidden="true">➕</span>
+          <img class="tile-ic" src="assets/icons/aggiungi.svg" alt="">
           <span class="tile-title">Aggiungi</span>
           <span class="tile-sub">Un nuovo prodotto</span>
         </a>
         <a href="lista-spesa.html" class="tile tile-green">
-          <span class="tile-emoji" aria-hidden="true">🛒</span>
+          <img class="tile-ic" src="assets/icons/carrello.svg" alt="">
           <span class="tile-title">Spesa</span>
           <span class="tile-sub">Cosa comprare</span>
         </a>
@@ -507,7 +501,7 @@
     <section>
       <div class="urgent-card">
         <div class="urgent-card-header">
-          <h2>🔴 Da salvare oggi</h2>
+          <h2><img class="ic" src="assets/icons/orologio.svg" alt=""> Da salvare oggi</h2>
         </div>
         <p class="urgent-card-sub">Questi prodotti sono i prossimi a scadere</p>
         <div id="urgent-items-list"></div>

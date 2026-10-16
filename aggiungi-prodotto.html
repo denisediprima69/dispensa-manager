@@ -607,7 +607,7 @@
 <script src="date-picker.js?v=9"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="theme.css?v=5">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -623,9 +623,9 @@
 
   <main>
     <div id="tip-banner" class="tip-banner" style="display:none;">
-      <span class="tip-icon">📸</span>
+      <span class="tip-icon"><img class="ic" src="assets/icons/fotocamera.svg" alt=""></span>
       <span class="tip-text">Barcode e data di scadenza sono spesso su lati diversi della confezione: te li faccio fotografare in <strong>due passaggi separati</strong></span>
-      <button id="tip-dismiss-btn" class="tip-dismiss" aria-label="Chiudi suggerimento">✕</button>
+      <button id="tip-dismiss-btn" class="tip-dismiss" aria-label="Chiudi suggerimento"><img class="ic" src="assets/icons/chiudi.svg" alt=""></button>
     </div>
 
     <div class="capture-card">
@@ -677,7 +677,7 @@
             <input type="text" id="nodb-name" placeholder="Es. Latte Nesquik" autocomplete="off">
             <div id="nodb-suggestions" class="date-chip-row" style="margin-top:8px;"></div>
             <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-              <button type="button" id="nodb-photo-btn" class="btn btn-secondary" style="flex:1;">📷 Oppure fotografa il prodotto</button>
+              <button type="button" id="nodb-photo-btn" class="btn btn-secondary" style="flex:1;"><img class="ic" src="assets/icons/fotocamera.svg" alt=""> Oppure fotografa il prodotto</button>
               <img id="nodb-thumb" class="nodb-thumb" alt="Foto prodotto">
             </div>
             <p id="nodb-status" style="font-size:12.5px;color:var(--text-muted);margin:6px 0 0;"></p>
@@ -701,7 +701,7 @@
         </div>
 
         <div class="planb-wrap">
-          <button type="button" id="toggle-planb-btn" class="manual-entry-link">📷 Piano B: provo a leggerla con la fotocamera (sperimentale)</button>
+          <button type="button" id="toggle-planb-btn" class="manual-entry-link"><img class="ic" src="assets/icons/fotocamera.svg" alt=""> Piano B: provo a leggerla con la fotocamera (sperimentale)</button>
         </div>
 
         <div id="capture-empty-state" class="capture-empty" style="display:none;">
@@ -729,7 +729,7 @@
           <div style="padding:0 16px;"><img id="date-debug-img" alt="" style="width:100%;max-height:90px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:8px;display:none;"></div>
           <div id="live-date-error" class="error-banner-inline" style="display:none;"></div>
           <div style="padding: 0 16px 8px;">
-            <button type="button" id="read-now-btn" class="btn btn-secondary">📸 Leggi adesso</button>
+            <button type="button" id="read-now-btn" class="btn btn-secondary"><img class="ic" src="assets/icons/fotocamera.svg" alt=""> Leggi adesso</button>
           </div>
           <div style="padding: 0 16px 16px;">
             <button type="button" id="cancel-live-date-btn" class="manual-entry-link">Preferisco scriverla io ↓</button>
@@ -751,8 +751,8 @@
               <div class="confirm-date-big" id="confirm-date-text">—</div>
               <p class="confirm-question">È corretta?</p>
               <div class="confirm-actions">
-                <button class="btn btn-primary btn-confirm" id="confirm-yes-btn">✓ Sì, è corretta</button>
-                <button class="btn btn-secondary btn-confirm" id="confirm-edit-btn">✏️ Modifica</button>
+                <button class="btn btn-primary btn-confirm" id="confirm-yes-btn"><img class="ic" src="assets/icons/conferma.svg" alt=""> Sì, è corretta</button>
+                <button class="btn btn-secondary btn-confirm" id="confirm-edit-btn"><img class="ic" src="assets/icons/modifica.svg" alt=""> Modifica</button>
               </div>
               <div id="alt-dates-row" class="alt-dates-row" style="display:none;">
                 <p class="alt-dates-label">Altre date trovate nella foto</p>
@@ -829,7 +829,7 @@
       </div>
 
       <button class="btn btn-primary" id="save-btn">Aggiungi alla dispensa</button>
-      <div class="hint">💡 Dopo il salvataggio il modulo si svuota, così puoi fotografare subito il prodotto successivo</div>
+      <div class="hint">Dopo il salvataggio il modulo si svuota, così puoi fotografare subito il prodotto successivo</div>
     </div>
 
     <div class="recent-section">
