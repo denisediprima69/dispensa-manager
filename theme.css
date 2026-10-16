@@ -68,3 +68,29 @@ header::after {
 .status-dot.ok { background: var(--ok) !important; }
 .badge.ok { background: var(--ok-soft) !important; color: var(--ok-ink) !important; }
 .chart-seg-saved { background: var(--ok) !important; }
+
+/* --- Stile "colorato" (ispirato al riferimento Aptivo): fondo crema, tasselli pieni, forme morbide --- */
+:root {
+  --tile-blue: #5B84AD;
+  --tile-orange: #E37434;
+  --tile-green: #5F8A47;
+  --tile-purple: #8B7FC4;
+  --tile-pink: #C9587A;
+  --tile-yellow: #E8B04A;
+  --radius: 22px;
+}
+
+/* passaggi "Come funziona": ogni numero ha un suo colore */
+.tutorial-list .step-card:nth-child(1) .step-number { background: var(--tile-blue); color: #fff; }
+.tutorial-list .step-card:nth-child(2) .step-number { background: var(--tile-purple); color: #fff; }
+.tutorial-list .step-card:nth-child(3) .step-number { background: var(--tile-pink); color: #fff; }
+.step-number { width: 34px; height: 34px; min-width: 34px; font-family: var(--font-title); font-size: 22px !important; }
+
+/* schede più morbide e senza bordo duro */
+.urgent-card, .chart-card, .step-card, .card, .form-card, .intro { border-color: transparent; }
+
+/* etichette di sezione più calde */
+.section-label { color: var(--accent-ink); }
+
+/* pulsanti: pillola piena, un po' più alta */
+.btn { padding: 15px 22px; font-weight: 700; }
