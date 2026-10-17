@@ -272,7 +272,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=5">
+<link rel="stylesheet" href="theme.css?v=6">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -361,6 +361,16 @@
           </div>
           <button class="toggle" id="tip-toggle"></button>
         </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-label">Storico</p>
+      <div class="card">
+        <a class="info-row" href="archivio.html" style="text-decoration:none;">
+          <span class="info-label"><img class="ic" src="assets/icons/archivio.svg" alt=""> Archivio prodotti</span>
+          <span class="info-value" id="archive-count">→</span>
+        </a>
       </div>
     </section>
 
@@ -579,6 +589,13 @@
 
   // --- Init ---
   renderDefaultCategories();
+  (async () => {
+    try {
+      const r = await window.storage.get('dispensa-archivio', false);
+      const n = r ? JSON.parse(r.value).length : 0;
+      document.getElementById('archive-count').textContent = n ? n + (n === 1 ? ' prodotto →' : ' prodotti →') : 'Vuoto →';
+    } catch (e) {}
+  })();
   renderCustomCategories();
   initNotifPrefs();
   initTipToggle();

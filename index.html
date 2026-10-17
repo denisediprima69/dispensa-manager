@@ -234,6 +234,22 @@
   @keyframes stipino-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
   @media (prefers-reduced-motion: reduce) { .stipino-say img { animation: none !important; } }
 
+  /* --- Archivia scaduti --- */
+  .u-arch { appearance: none; border: 2px solid #E3B3B0; background: #fff; width: 42px; height: 42px; min-width: 42px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: transform .1s ease; }
+  .u-arch:active { transform: scale(.92); }
+  .u-arch img { width: 28px; height: 28px; }
+  .urgent-item .u-right { display: flex; align-items: center; gap: 8px; }
+  .archive-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+  .archive-bar button, .archive-bar a { font-family: inherit; font-size: 12.5px; font-weight: 700; text-decoration: none; cursor: pointer; border-radius: 999px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; }
+  .archive-bar button { background: #fff; border: 2px solid #E3B3B0; color: var(--danger); }
+  .archive-bar a { color: #8A5A58; padding-left: 4px; padding-right: 4px; }
+  .archive-bar img { width: 22px; height: 22px; }
+  .archive-link { display: none; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-decoration: none; padding: 4px 0; }
+  .archive-link img { width: 24px; height: 24px; }
+  .toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translate(-50%, 30px); opacity: 0; pointer-events: none; z-index: 60; display: flex; align-items: center; gap: 14px; background: #3B3A4A; color: #fff; padding: 12px 14px 12px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 24px rgba(59,58,74,.3); transition: opacity .25s ease, transform .25s ease; width: max-content; max-width: calc(100vw - 32px); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast button { appearance: none; border: none; background: rgba(255,255,255,.18); color: #fff; font: inherit; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+
   /* --- Section heading --- */
   .section-label {
     font-size: 12px;
@@ -464,7 +480,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=5">
+<link rel="stylesheet" href="theme.css?v=6">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -538,11 +554,14 @@
         <div class="urgent-card-header">
           <h2><img class="ic" src="assets/icons/buttato.svg" alt=""> Scaduti <span class="count" id="expired-count"></span></h2>
         </div>
-        <p class="urgent-card-sub">Controlla da quanti giorni prima di decidere</p>
+        <p class="urgent-card-sub">Controlla da quanti giorni prima di decidere. Non ti servono più? Archiviali: restano nello storico.</p>
         <div id="expired-list"></div>
         <div class="stipino-say">
           <img src="assets/stipino-piange.svg" alt="Lo Stipino che piange">
           <div class="bubble" id="expired-say"></div>
+        </div>
+        <div class="archive-bar">
+          <button type="button" id="archive-all-btn"><img src="assets/icons/archivio.svg" alt=""> Archivia tutti</button>
         </div>
       </div>
 
@@ -553,6 +572,8 @@
           <div class="bubble">Tutto sotto controllo! Continua così.</div>
         </div>
       </div>
+
+      <a href="archivio.html" class="archive-link" id="archive-link"><img src="assets/icons/archivio.svg" alt=""> <span id="archive-link-text"></span></a>
 
       <a href="lista-dispensa.html" id="pending-note" style="display:none; font-size:13px; font-weight:700; color:var(--warning); text-decoration:none;"></a>
     </section>
@@ -645,6 +666,8 @@
   setTimeout(close, 3200);
 })();
 </script>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-text"></span><button type="button" id="toast-undo">Annulla</button></div>
+
 <script>
 (function () {
   async function loadProducts() {
@@ -719,7 +742,10 @@
       if (kind === 'expired') {
         return `<div class="urgent-item">
           <div class="u-name">${escapeHtml(p.name)}<small>scadeva il ${dateIt(p.expiryDate)}</small></div>
-          <div class="u-when late"><small>scaduto da</small>${agoLabel(-days)}</div>
+          <div class="u-right">
+            <div class="u-when late"><small>scaduto da</small>${agoLabel(-days)}</div>
+            <button type="button" class="u-arch" data-arch="${escapeHtml(p.id)}" aria-label="Archivia ${escapeHtml(p.name)}" title="Archivia"><img src="assets/icons/archivio.svg" alt=""></button>
+          </div>
         </div>`;
       }
       const w = whenSave(days);
@@ -729,6 +755,64 @@
       </div>`;
     }).join('');
   }
+
+  const ARCHIVE_KEY = 'dispensa-archivio';
+  async function loadArchive() {
+    try {
+      const r = await window.storage.get(ARCHIVE_KEY, false);
+      return r ? JSON.parse(r.value) : [];
+    } catch (e) { return []; }
+  }
+  async function saveArchive(list) {
+    try { await window.storage.set(ARCHIVE_KEY, JSON.stringify(list), false); } catch (e) { console.error('Errore salvataggio archivio', e); }
+  }
+  async function saveProducts(list) {
+    try { await window.storage.set('dispensa-prodotti', JSON.stringify(list), false); } catch (e) { console.error('Errore salvataggio prodotti', e); }
+  }
+
+  let toastTimer = null, undoAction = null;
+  function showToast(text, undo) {
+    const el = document.getElementById('toast');
+    document.getElementById('toast-text').textContent = text;
+    undoAction = undo || null;
+    document.getElementById('toast-undo').style.display = undo ? '' : 'none';
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 6000);
+  }
+  document.getElementById('toast-undo').addEventListener('click', async () => {
+    if (undoAction) await undoAction();
+    undoAction = null;
+    document.getElementById('toast').classList.remove('show');
+  });
+
+  // sposta i prodotti scaduti nell'archivio (restano nello storico, spariscono da Home e dall'elenco)
+  async function archiveProducts(ids) {
+    const [products, archive] = await Promise.all([loadProducts(), loadArchive()]);
+    const now = new Date().toISOString();
+    const moving = products.filter(p => ids.includes(p.id));
+    if (!moving.length) return;
+    await saveProducts(products.filter(p => !ids.includes(p.id)));
+    await saveArchive(archive.concat(moving.map(p => Object.assign({}, p, { archivedAt: now }))));
+    await renderUrgentSection();
+    showToast(moving.length === 1 ? `${moving[0].name} archiviato` : `${moving.length} prodotti archiviati`, async () => {
+      const [pNow, aNow] = await Promise.all([loadProducts(), loadArchive()]);
+      const back = aNow.filter(a => ids.includes(a.id)).map(a => { const c = Object.assign({}, a); delete c.archivedAt; return c; });
+      await saveProducts(pNow.concat(back));
+      await saveArchive(aNow.filter(a => !ids.includes(a.id)));
+      await renderUrgentSection();
+    });
+  }
+
+  document.getElementById('expired-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-arch]');
+    if (b) archiveProducts([b.dataset.arch]);
+  });
+  document.getElementById('archive-all-btn').addEventListener('click', async () => {
+    const products = await loadProducts();
+    const ids = products.filter(p => p.expiryDate && daysUntil(p.expiryDate) < 0).map(p => p.id);
+    if (ids.length) archiveProducts(ids);
+  });
 
   async function renderUrgentSection() {
     const products = await loadProducts();
@@ -761,6 +845,11 @@
       document.getElementById('expired-list').innerHTML = rows(expAll.slice(0, MAX), 'expired') + more(expAll.length);
       document.getElementById('expired-say').textContent = pick(EXPIRED_SAY[expAll.length === 1 ? 's' : 'p']);
     }
+
+    const archived = (await loadArchive()).length;
+    const aLink = document.getElementById('archive-link');
+    aLink.style.display = archived ? 'flex' : 'none';
+    document.getElementById('archive-link-text').textContent = archived ? `Archivio · ${archived} ${archived === 1 ? 'prodotto' : 'prodotti'} →` : '';
 
     const pendingNote = document.getElementById('pending-note');
     const pendingCount = products.filter(p => !p.expiryDate).length;
