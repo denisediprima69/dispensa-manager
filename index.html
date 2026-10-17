@@ -202,14 +202,37 @@
     padding: 8px 0;
   }
 
-  .stipino-line {
-    font-size: 12.5px;
-    color: var(--accent-ink);
-    font-weight: 600;
-    margin: 14px 0 0;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border);
-  }
+  /* --- Da salvare / Scaduti --- */
+  .urgent-wrap { display: flex; flex-direction: column; gap: 16px; }
+  .urgent-card.expired-card { background: #FBEDEB; border: 2px solid #E3B3B0; }
+  .urgent-card.save-card { border: 2px solid #F3CDB0; }
+  .urgent-card-header h2 { display: flex; align-items: center; gap: 8px; }
+  .urgent-card-header .count { margin-left: auto; font-family: var(--font-body); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); }
+  .expired-card .urgent-card-header .count { background: #F1CFCC; color: var(--danger); }
+  .expired-card .urgent-card-header h2 { color: var(--danger); }
+  .expired-card .urgent-card-sub { color: #8A5A58; }
+  .expired-card .urgent-item { border-top-color: #EBCBC8; }
+
+  .u-when { white-space: nowrap; font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; }
+  .u-when.now { background: var(--accent); color: #fff; }
+  .u-when.soon { background: var(--warning-soft); color: var(--warning); }
+  .u-when.late { background: var(--danger); color: #fff; font-size: 13px; padding: 6px 12px; }
+  .u-when.late small { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; opacity: .85; line-height: 1.1; }
+  .urgent-item .u-name small { display: block; font-size: 11.5px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+  .expired-card .urgent-item .u-name small { color: #8A5A58; }
+  .u-more { display: block; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-decoration: none; }
+
+  .stipino-say { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
+  .expired-card .stipino-say { border-top-color: #E3B3B0; }
+  .stipino-say img { width: 80px; height: 80px; flex-shrink: 0; }
+  .stipino-say .bubble { position: relative; flex: 1; background: var(--accent-soft); color: var(--accent-ink); font-size: 13px; font-weight: 600; line-height: 1.4; padding: 10px 13px; border-radius: 16px; }
+  .stipino-say .bubble::before { content: ''; position: absolute; left: -7px; top: 50%; width: 14px; height: 14px; margin-top: -7px; background: inherit; transform: rotate(45deg); border-radius: 3px; }
+  .expired-card .stipino-say .bubble { background: #F5D9D6; color: #7C2F35; }
+  .expired-card .stipino-say img { animation: stipino-sob 1.6s ease-in-out infinite; }
+  .save-card .stipino-say img { animation: stipino-hop 2.4s ease-in-out infinite; }
+  @keyframes stipino-sob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px) rotate(-2deg); } }
+  @keyframes stipino-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) { .stipino-say img { animation: none !important; } }
 
   /* --- Section heading --- */
   .section-label {
@@ -498,16 +521,40 @@
       </div>
     </section>
 
-    <section>
-      <div class="urgent-card">
+    <section class="urgent-wrap">
+      <div class="urgent-card save-card" id="save-card" hidden>
         <div class="urgent-card-header">
-          <h2><img class="ic" src="assets/icons/orologio.svg" alt=""> Da salvare oggi</h2>
+          <h2><img class="ic" src="assets/icons/orologio.svg" alt=""> Da salvare oggi <span class="count" id="save-count"></span></h2>
         </div>
-        <p class="urgent-card-sub">Questi prodotti sono i prossimi a scadere</p>
-        <div id="urgent-items-list"></div>
-        <p class="stipino-line" id="stipino-line" style="display:none;">👀 Partiamo da questi?</p>
-        <a href="lista-dispensa.html" id="pending-note" style="display:none; margin-top:10px; font-size:13px; font-weight:700; color:var(--warning); text-decoration:none;"></a>
+        <p class="urgent-card-sub">Sono ancora buoni: usali prima che scadano</p>
+        <div id="save-list"></div>
+        <div class="stipino-say">
+          <img src="assets/stipino-felice.svg" alt="Lo Stipino contento">
+          <div class="bubble" id="save-say"></div>
+        </div>
       </div>
+
+      <div class="urgent-card expired-card" id="expired-card" hidden>
+        <div class="urgent-card-header">
+          <h2><img class="ic" src="assets/icons/buttato.svg" alt=""> Scaduti <span class="count" id="expired-count"></span></h2>
+        </div>
+        <p class="urgent-card-sub">Controlla da quanti giorni prima di decidere</p>
+        <div id="expired-list"></div>
+        <div class="stipino-say">
+          <img src="assets/stipino-piange.svg" alt="Lo Stipino che piange">
+          <div class="bubble" id="expired-say"></div>
+        </div>
+      </div>
+
+      <div class="urgent-card" id="allok-card" hidden>
+        <p class="urgent-card-empty" style="margin:0;">Niente in scadenza a breve, lo Stipo è tranquillo</p>
+        <div class="stipino-say">
+          <img src="assets/stipino-felice.svg" alt="Lo Stipino contento">
+          <div class="bubble">Tutto sotto controllo! Continua così.</div>
+        </div>
+      </div>
+
+      <a href="lista-dispensa.html" id="pending-note" style="display:none; font-size:13px; font-weight:700; color:var(--warning); text-decoration:none;"></a>
     </section>
 
     <section>
@@ -625,56 +672,100 @@
     return Math.round((target - now) / (1000 * 60 * 60 * 24));
   }
 
-  function statusClass(days) {
-    if (days <= 2) return 'urgent';
-    if (days <= 7) return 'warning';
-    return 'ok';
-  }
-
-  function daysLabel(days) {
-    if (days < 0) return 'Scaduto';
-    if (days === 0) return 'Oggi';
-    if (days === 1) return 'Domani';
-    return `tra ${days} giorni`;
-  }
-
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
+  // frase del giorno: cambia ogni giorno ma resta stabile durante la giornata
+  function pick(arr) {
+    const d = new Date();
+    return arr[(d.getFullYear() * 400 + d.getMonth() * 31 + d.getDate()) % arr.length];
+  }
+
+  const SAVE_SAY = {
+    s: ['Dai, puoi ancora salvarlo!', 'Sei in tempo: usalo oggi!', 'Ce la facciamo, non lo buttiamo!'],
+    p: ['Dai, puoi ancora salvarli!', 'Siamo in tempo: usiamoli oggi!', 'Ce la facciamo, non li buttiamo!']
+  };
+  const EXPIRED_SAY = {
+    s: ['Uffa, questo non si salva più… Se è scaduto da poco, guardalo e annusalo bene prima di decidere.',
+        'Buh! È scaduto. Se è da poco, controlla aspetto e odore prima di buttarlo.'],
+    p: ['Uffa, questi non si salvano più… Se sono scaduti da poco, guardali e annusali bene prima di decidere.',
+        'Buh! Sono scaduti. Se è da poco, controlla aspetto e odore prima di buttarli.']
+  };
+
+  function whenSave(days) {
+    if (days === 0) return { cls: 'now', text: 'Oggi' };
+    if (days === 1) return { cls: 'now', text: 'Domani' };
+    return { cls: 'soon', text: `tra ${days} giorni` };
+  }
+
+  function agoLabel(daysAgo) {
+    if (daysAgo === 1) return '1 giorno';
+    if (daysAgo < 60) return `${daysAgo} giorni`;
+    const m = Math.round(daysAgo / 30);
+    return `${m} mesi`;
+  }
+
+  function dateIt(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+  }
+
+  function rows(items, kind) {
+    return items.map(p => {
+      const days = daysUntil(p.expiryDate);
+      if (kind === 'expired') {
+        return `<div class="urgent-item">
+          <div class="u-name">${escapeHtml(p.name)}<small>scadeva il ${dateIt(p.expiryDate)}</small></div>
+          <div class="u-when late"><small>scaduto da</small>${agoLabel(-days)}</div>
+        </div>`;
+      }
+      const w = whenSave(days);
+      return `<div class="urgent-item">
+        <div class="u-name">${escapeHtml(p.name)}</div>
+        <div class="u-when ${w.cls}">${w.text}</div>
+      </div>`;
+    }).join('');
+  }
+
   async function renderUrgentSection() {
     const products = await loadProducts();
-    const urgent = products
-      .filter(p => p.expiryDate && daysUntil(p.expiryDate) <= 7)
-      .sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate))
-      .slice(0, 3);
+    const withDate = products.filter(p => p.expiryDate);
+    const MAX = 3;
 
-    const list = document.getElementById('urgent-items-list');
-    const stipinoLine = document.getElementById('stipino-line');
+    // da salvare: da oggi a 7 giorni, i più vicini per primi
+    const saveAll = withDate.filter(p => { const d = daysUntil(p.expiryDate); return d >= 0 && d <= 7; })
+      .sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+    // scaduti: prima quelli scaduti da meno tempo (i più "recuperabili")
+    const expAll = withDate.filter(p => daysUntil(p.expiryDate) < 0)
+      .sort((a, b) => daysUntil(b.expiryDate) - daysUntil(a.expiryDate));
+
+    const saveCard = document.getElementById('save-card');
+    const expCard = document.getElementById('expired-card');
+    const okCard = document.getElementById('allok-card');
+    saveCard.hidden = saveAll.length === 0;
+    expCard.hidden = expAll.length === 0;
+    okCard.hidden = saveAll.length !== 0 || expAll.length !== 0;
+
+    const more = (n) => n > MAX ? `<a class="u-more" href="lista-dispensa.html">+ altri ${n - MAX} →</a>` : '';
+
+    if (saveAll.length) {
+      document.getElementById('save-count').textContent = saveAll.length;
+      document.getElementById('save-list').innerHTML = rows(saveAll.slice(0, MAX), 'save') + more(saveAll.length);
+      document.getElementById('save-say').textContent = pick(SAVE_SAY[saveAll.length === 1 ? 's' : 'p']);
+    }
+    if (expAll.length) {
+      document.getElementById('expired-count').textContent = expAll.length;
+      document.getElementById('expired-list').innerHTML = rows(expAll.slice(0, MAX), 'expired') + more(expAll.length);
+      document.getElementById('expired-say').textContent = pick(EXPIRED_SAY[expAll.length === 1 ? 's' : 'p']);
+    }
+
     const pendingNote = document.getElementById('pending-note');
     const pendingCount = products.filter(p => !p.expiryDate).length;
     pendingNote.style.display = pendingCount ? 'block' : 'none';
-    pendingNote.textContent = pendingCount ? `📝 ${pendingCount} ${pendingCount === 1 ? 'prodotto senza scadenza' : 'prodotti senza scadenza'} — completa →` : '';
-
-    if (urgent.length === 0) {
-      list.innerHTML = `<p class="urgent-card-empty">Niente in scadenza a breve, lo Stipo è tranquillo 🌿</p>`;
-      stipinoLine.style.display = 'none';
-      return;
-    }
-
-    list.innerHTML = urgent.map(p => {
-      const days = daysUntil(p.expiryDate);
-      return `
-        <div class="urgent-item">
-          <div class="status-dot ${statusClass(days)}"></div>
-          <div class="u-name">${escapeHtml(p.name)}</div>
-          <div class="u-days">${daysLabel(days)}</div>
-        </div>
-      `;
-    }).join('');
-    stipinoLine.style.display = 'block';
+    pendingNote.innerHTML = pendingCount ? `<img class="ic" src="assets/icons/modifica.svg" alt=""> ${pendingCount} ${pendingCount === 1 ? 'prodotto senza scadenza' : 'prodotti senza scadenza'} — completa →` : '';
   }
 
   async function renderChart() {
