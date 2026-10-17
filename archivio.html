@@ -62,7 +62,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=7">
+<link rel="stylesheet" href="theme.css?v=8">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -134,7 +134,7 @@
     const archive = (await load(ARCHIVE_KEY)).sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt));
     if (!archive.length) {
       main.innerHTML = `<div class="empty">
-        <img src="assets/stipino-felice.svg" alt="Lo Stipino">
+        <span class="dusty"><img src="assets/stipino-felice.svg" alt="Lo Stipino"></span>
         <h2>Nessun prodotto archiviato</h2>
         <p>Quando archivi un prodotto scaduto dalla Home, sparisce da lì ma lo ritrovi qui, nello storico.</p>
         <a class="btn" href="index.html">Torna alla Home</a>
