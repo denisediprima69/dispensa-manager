@@ -234,6 +234,11 @@
   @keyframes stipino-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
   @media (prefers-reduced-motion: reduce) { .stipino-say img { animation: none !important; } }
 
+  /* --- Avviso: consigli, non consigli medici --- */
+  .advice-note { display: flex; align-items: flex-start; gap: 11px; margin-top: 12px; padding: 12px 14px; background: #fff; border: 2px solid var(--danger); border-radius: 16px; font-size: 13px; line-height: 1.45; color: #5B2328; }
+  .advice-note b { display: block; color: var(--danger); font-size: 13.5px; margin-bottom: 2px; }
+  .advice-note .adv-ic { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--danger); color: #fff; font-weight: 800; font-size: 16px; line-height: 26px; text-align: center; margin-top: 1px; }
+
   /* --- Archivia scaduti --- */
   .u-arch { appearance: none; border: 2px solid #E3B3B0; background: #fff; width: 42px; height: 42px; min-width: 42px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: transform .1s ease; }
   .u-arch:active { transform: scale(.92); }
@@ -559,6 +564,10 @@
         <div class="stipino-say">
           <img src="assets/stipino-piange.svg" alt="Lo Stipino che piange">
           <div class="bubble" id="expired-say"></div>
+        </div>
+        <div class="advice-note" role="note">
+          <span class="adv-ic" aria-hidden="true">!</span>
+          <div><b>Sono consigli, non consigli medici.</b> Guardare e annusare un cibo non garantisce che sia sicuro: nel dubbio, non consumarlo.</div>
         </div>
         <div class="archive-bar">
           <button type="button" id="archive-all-btn"><img src="assets/icons/archivio.svg" alt=""> Archivia tutti</button>
