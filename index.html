@@ -471,25 +471,21 @@
   }
 
   /* --- Tasselli colorati della Home (stile "Pick what you love") --- */
-  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; margin-top: 22px; text-align: left; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 14px; width: 100%; margin-top: 22px; text-align: left; }
   .tile {
     position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
-    min-height: 118px; padding: 16px 16px 14px; border-radius: 22px;
+    min-height: 150px; padding: 22px 16px 16px; border-radius: 22px;
     color: #fff; text-decoration: none; box-shadow: var(--shadow-card);
     transition: transform .1s ease;
   }
   .tile:active { transform: scale(.97); }
-  .tile.wide { grid-column: 1 / -1; min-height: 132px; }
-  .tile-ic { position: absolute; top: 22px; right: 12px; width: 40px; height: 40px; }
-  .tile.wide .tile-ic { top: 26px; width: 64px; height: 64px; }
-  .tile-title { font-family: var(--font-title); font-size: 30px; font-weight: 700; line-height: 1; }
+  .tile-ic { width: 56px; height: 56px; margin-bottom: auto; }
+  .tile-title { font-family: var(--font-title); font-size: 27px; font-weight: 700; line-height: 1; }
   .tile-sub { font-size: 12.5px; font-weight: 500; opacity: .92; line-height: 1.3; }
-  .tile-blue { background: #5B84AD; }
+  .tile-blue { background: #3E7CC9; }
   .tile-orange { background: #E37434; }
-  .tile-green { background: #5F8A47; }
-  .tile-blue::before { background-image: url('assets/occhi-su-dx.svg') !important; }
-  .tile-orange::before { background-image: url('assets/occhi-su-sx.svg') !important; }
-  .tile-green::before { background-image: url('assets/occhi-giu.svg') !important; }
+  .tile-green { background: #2FA566; }
+  .tile-purple { background: #7B5CD6; }
   /* occhietti che sbucano dal bordo alto, come lo Stipino */
   .tile::before {
     content: ''; position: absolute; left: 50%; top: -16px; width: 80px; height: 32px; transform: translateX(-50%);
@@ -509,7 +505,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=8">
+<link rel="stylesheet" href="theme.css?v=9">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -621,10 +617,10 @@
       <p>Vediamo cosa abbiamo da salvare oggi</p>
 
       <div class="tiles">
-        <a href="lista-dispensa.html" class="tile tile-blue wide">
+        <a href="lista-dispensa.html" class="tile tile-blue">
           <img class="tile-ic" src="assets/icons/dispensa-aperta.svg" alt="">
-          <span class="tile-title">Vai allo Stipo</span>
-          <span class="tile-sub">Tutto quello che hai in casa</span>
+          <span class="tile-title">Lo Stipo</span>
+          <span class="tile-sub">Tutto quello che hai</span>
         </a>
         <a href="metodo-aggiunta.html" class="tile tile-orange">
           <img class="tile-ic" src="assets/icons/aggiungi.svg" alt="">
@@ -635,6 +631,11 @@
           <img class="tile-ic" src="assets/icons/carrello.svg" alt="">
           <span class="tile-title">Spesa</span>
           <span class="tile-sub">Cosa comprare</span>
+        </a>
+        <a href="archivio.html" class="tile tile-purple">
+          <img class="tile-ic" src="assets/icons/archivio.svg" alt="">
+          <span class="tile-title">Archivio</span>
+          <span class="tile-sub">I prodotti archiviati</span>
         </a>
       </div>
     </section>

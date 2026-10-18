@@ -18,11 +18,11 @@
 
   --blue: #A8C0D8;
   --blue-deep: #6F94BA;
-  --blue-soft: #E3ECF5;
+  --blue-soft: #DCE8F7;
 
   --ok: #6F94BA;            /* "tutto ok" = azzurro */
   --ok-ink: #3F6A94;
-  --ok-soft: #E3ECF5;
+  --ok-soft: #DCE8F7;
   --warning: #A9741A;
   --warning-soft: #FAEBC9;
   --danger: #A63A40;
@@ -71,11 +71,11 @@ header::after {
 
 /* --- Stile "colorato" (ispirato al riferimento Aptivo): fondo crema, tasselli pieni, forme morbide --- */
 :root {
-  --tile-blue: #5B84AD;
+  --tile-blue: #3E7CC9;
   --tile-orange: #E37434;
-  --tile-green: #5F8A47;
-  --tile-purple: #8B7FC4;
-  --tile-pink: #C9587A;
+  --tile-green: #2FA566;
+  --tile-purple: #7B5CD6;
+  --tile-pink: #E8508A;
   --tile-yellow: #E8B04A;
   --radius: 22px;
 }
@@ -100,10 +100,10 @@ header::after {
    Ogni pagina ha un colore (classe sul <body>): arancio, blu, verde, viola, rosa.
    ===================================================================== */
 body.pg-orange { --hdr: #E37434; --hdr-soft: #FBE5D4; }
-body.pg-blue   { --hdr: #5B84AD; --hdr-soft: #E3ECF5; }
-body.pg-green  { --hdr: #5F8A47; --hdr-soft: #E1EDD8; }
-body.pg-purple { --hdr: #8B7FC4; --hdr-soft: #E8E5F5; }
-body.pg-pink   { --hdr: #C9587A; --hdr-soft: #F6DDE5; }
+body.pg-blue   { --hdr: #3E7CC9; --hdr-soft: #DCE8F7; }
+body.pg-green  { --hdr: #2FA566; --hdr-soft: #D5F0E1; }
+body.pg-purple { --hdr: #7B5CD6; --hdr-soft: #E6DFF7; }
+body.pg-pink   { --hdr: #E8508A; --hdr-soft: #FADCE8; }
 body { --hdr: #E37434; --hdr-soft: #FBE5D4; }
 
 /* intestazione: fascia colorata con testo bianco, quadretti azzurri sotto */
@@ -126,7 +126,7 @@ header a[href="lista-spesa.html"] { background: rgba(255, 255, 255, .22) !import
 /* tasselli (schede del menù "Come vuoi aggiungere?"), con gli occhietti dello Stipino */
 .method-card.tile { border: none; color: #fff; box-shadow: var(--shadow-card); position: relative; border-radius: 22px; padding: 22px 18px 18px; }
 .method-card.tile-orange { background: #E37434; }
-.method-card.tile-blue { background: #5B84AD; }
+.method-card.tile-blue { background: #3E7CC9; }
 .method-card.tile .method-body h2 { color: #fff; font-size: 30px !important; }
 .method-card.tile .method-body p { color: rgba(255, 255, 255, .94); }
 .method-card.tile .method-icon { background: rgba(255, 255, 255, .24); border-radius: 16px; }
@@ -155,7 +155,7 @@ body.pg-orange .step-indicator, body.pg-orange .capture-icon svg { color: var(--
 .zone-icon.zi-frigo { background: #DCE8F4 !important; }
 .zone-icon.zi-freezer { background: #D7EEF0 !important; }
 .zone-icon.zi-dispensa { background: #FAEBC9 !important; }
-.zone-icon.zi-cantina { background: #E8E5F5 !important; }
+.zone-icon.zi-cantina { background: #E6DFF7 !important; }
 .sort-tab.active { background: var(--hdr) !important; border-color: var(--hdr) !important; color: #fff !important; }
 .fab { background: var(--accent) !important; box-shadow: 0 6px 16px rgba(227, 116, 52, .4) !important; }
 .product-row, .item-row { border-radius: 18px; border-color: transparent !important; }
@@ -169,11 +169,11 @@ body.pg-orange .step-indicator, body.pg-orange .capture-icon svg { color: var(--
 
 /* categorie in pillole colorate a rotazione */
 .category-chip { border-color: transparent !important; }
-.category-chip:nth-child(5n+1) { background: #E3ECF5 !important; }
+.category-chip:nth-child(5n+1) { background: #DCE8F7 !important; }
 .category-chip:nth-child(5n+2) { background: #FAEBC9 !important; }
-.category-chip:nth-child(5n+3) { background: #E1EDD8 !important; }
-.category-chip:nth-child(5n+4) { background: #E8E5F5 !important; }
-.category-chip:nth-child(5n+5) { background: #F6DDE5 !important; }
+.category-chip:nth-child(5n+3) { background: #D5F0E1 !important; }
+.category-chip:nth-child(5n+4) { background: #E6DFF7 !important; }
+.category-chip:nth-child(5n+5) { background: #FADCE8 !important; }
 .toggle.on { background: var(--hdr) !important; }
 body.pg-purple .section-label { color: var(--hdr); }
 .location-pill.selected, .date-chip.selected, .quick-date-chip.selected, .pill.sel { background: var(--hdr) !important; border-color: var(--hdr) !important; color: #fff !important; }
