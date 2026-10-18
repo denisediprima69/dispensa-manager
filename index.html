@@ -79,12 +79,17 @@
   .hero-logo { height: 124px; width: auto; display: block; }
   .hero { padding: 0; gap: 0; margin: 0 -20px; }
   .hero-top { position: relative; width: 100%; box-sizing: border-box; background: #3E7CC9; overflow: hidden;
-    border-radius: 0 0 38px 38px; padding: 42px 20px 96px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    border-radius: 0 0 38px 38px; padding: 42px 20px 96px; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .hero-top::before { content: ''; position: absolute; inset: -60px 0 -20px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 260'%3E%3Cpath d='M-10 150 C60 90 110 190 170 120 S300 60 410 130' fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='2'/%3E%3Cpath d='M20 40 C90 -10 140 70 200 20' fill='none' stroke='%23fff' stroke-opacity='.18' stroke-width='2'/%3E%3Ccircle cx='60' cy='70' r='6' fill='%23E37434'/%3E%3Ccircle cx='340' cy='60' r='9' fill='%23FAF3E3' fill-opacity='.85'/%3E%3Ccircle cx='310' cy='170' r='5' fill='%23F3C16B'/%3E%3Ccircle cx='38' cy='190' r='4' fill='%23FAF3E3' fill-opacity='.7'/%3E%3Ccircle cx='250' cy='30' r='4' fill='%23E37434'/%3E%3Ccircle cx='120' cy='30' r='3' fill='%23FAF3E3' fill-opacity='.7'/%3E%3C/svg%3E") center / cover no-repeat; transform: translate3d(0, var(--py, 0px), 0); will-change: transform; pointer-events: none; }
   .hero-fg { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; will-change: transform, opacity; }
   .hero .hero-top p { color: rgba(255,255,255,.95); font-weight: 500; }
-  .tiles-box { position: relative; box-sizing: border-box; width: calc(100% - 32px); margin: -68px auto 0; background: #F3E6CB; border-radius: 28px; padding: 34px 16px 18px; box-shadow: 0 10px 28px rgba(60, 40, 10, .14); }
+  .tiles-box { position: relative; box-sizing: border-box; width: calc(100% - 32px); margin: -68px auto 0; background: #F3E6CB; border-radius: 28px; padding: 18px 16px 18px; box-shadow: 0 10px 28px rgba(60, 40, 10, .14); }
   .tiles-box .tiles { margin-top: 0; }
+  .box-title { margin: 0 0 14px; text-align: center; font-size: 14px; font-weight: 600; color: #6B5A3E; }
+  .hero-stipino { position: absolute; left: 0; top: 96px; width: 150px; z-index: 1; pointer-events: none; will-change: transform; }
+  .hero-stipino .dusty { display: block; }
+  .hero-stipino img { width: 100%; display: block; transform: rotate(-8deg); }
+  .tiles-box { z-index: 2; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   .hero-icon {
@@ -479,7 +484,7 @@
   }
 
   /* --- Tasselli colorati della Home (stile "Pick what you love") --- */
-  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 14px; width: 100%; margin-top: 22px; text-align: left; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; margin-top: 22px; text-align: left; }
   .tile {
     position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
     min-height: 150px; padding: 22px 16px 16px; border-radius: 22px;
@@ -494,12 +499,6 @@
   .tile-orange { background: #E37434; }
   .tile-green { background: #2FA566; }
   .tile-purple { background: #7B5CD6; }
-  /* occhietti che sbucano dal bordo alto, come lo Stipino */
-  .tile::before {
-    content: ''; position: absolute; left: 50%; top: -16px; width: 80px; height: 32px; transform: translateX(-50%);
-    background: url('assets/occhi-centro.svg') center / contain no-repeat;
-    pointer-events: none;
-  }
 
   /* --- Impact tracker (personal, only shows if data present) --- */
   .impact-note {
@@ -624,11 +623,11 @@
         <div class="hero-fg" id="hero-fg">
           <img src="assets/logo-bianco.svg" alt="Lo Stipo" class="hero-logo">
           <h1 class="sr-only">Lo Stipo</h1>
-          <p>Vediamo cosa abbiamo da salvare oggi</p>
         </div>
       </div>
+      <div class="hero-stipino" id="hero-stipino" aria-hidden="true"><span class="dusty"><img src="assets/stipino-contento.svg" alt=""></span></div>
 
-      <div class="tiles-box"><div class="tiles">
+      <div class="tiles-box"><p class="box-title">Vediamo cosa abbiamo da salvare oggi</p><div class="tiles">
         <a href="lista-dispensa.html" class="tile tile-blue">
           <img class="tile-ic" src="assets/icons/dispensa-aperta.svg" alt="">
           <span class="tile-title">Lo Stipo</span>
@@ -769,17 +768,19 @@
 (function () {
   // parallax della testata: logo e decorazioni scorrono piu' lentamente del contenuto
   (function () {
-    var fg = document.getElementById('hero-fg'), top = fg && fg.parentNode;
+    var fg = document.getElementById('hero-fg'), top = fg && fg.parentNode, st = document.getElementById('hero-stipino');
     if (!fg || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-    var ticking = false;
+    var ticking = false, lastY = 0;
+    function getY() { return Math.max(window.scrollY || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0, lastY); }
     function update() {
       ticking = false;
-      var y = Math.max(0, Math.min(window.scrollY || 0, 420));
+      var y = Math.max(0, Math.min(getY(), 600));
+      if (st) st.style.transform = 'translate3d(0,' + (-y * 0.6).toFixed(1) + 'px,0) rotate(' + (y * 0.03).toFixed(2) + 'deg)';
       fg.style.transform = 'translate3d(0,' + (y * 0.45).toFixed(1) + 'px,0) scale(' + (1 - y / 1500).toFixed(3) + ')';
       fg.style.opacity = Math.max(0, 1 - y / 300).toFixed(2);
       top.style.setProperty('--py', (y * 0.22).toFixed(1) + 'px');
     }
-    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    document.addEventListener('scroll', function (e) { var t = e.target; lastY = (t && t !== document && t.scrollTop) ? t.scrollTop : 0; if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true, capture: true });
     update();
   })();
 
