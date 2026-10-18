@@ -338,6 +338,12 @@
   }
 
   /* --- Environmental section --- */
+  .home-footer { background: #3E7CC9; border-radius: 38px 38px 0 0; margin-top: -6px; padding: 34px 24px 44px; color: #fff; }
+  .footer-label { margin: 0 0 14px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.8); text-align: center; }
+  .home-footer .eco-card { background: transparent !important; box-shadow: none !important; padding: 0; border-radius: 0; text-align: center; }
+  .home-footer .eco-card::before, .home-footer .eco-card::after { display: none; }
+  .home-footer .eco-icon { margin: 0 auto 12px; background: rgba(255,255,255,.2); }
+  .home-footer .eco-stat { background: rgba(255,255,255,.16); }
   .eco-card {
     background: var(--accent);
     border-radius: var(--radius);
@@ -749,8 +755,10 @@
       </div>
     </section>
 
-    <section>
-      <p class="section-label">Perché conta</p>
+
+  </main>
+  <footer class="home-footer">
+    <p class="footer-label">Perché conta</p>
       <div class="eco-card">
         <div class="eco-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -773,9 +781,7 @@
         </div>
         <p class="impact-percent" id="impact-percent" style="display:none;"></p>
       </div>
-    </section>
-
-  </main>
+  </footer>
 </div>
 
 <script>
