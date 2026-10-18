@@ -213,7 +213,7 @@
     background: var(--bg);
   }
 
-  .thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); }
+  .thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: contain; background: #fff; flex-shrink: 0; border: 1px solid var(--border); }
 
   .product-info {
     flex: 1;
@@ -553,7 +553,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=9">
+<link rel="stylesheet" href="theme.css?v=10">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -908,7 +908,7 @@
         <button class="check-btn" aria-label="Consuma 1 unità">
           <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </button>
-        ${p.photo ? `<img class="thumb" src="${p.photo}" alt="">` : ''}
+        ${p.photo ? `<img class="thumb" src="${p.photo}" alt="" onerror="this.remove()">` : ''}
         <div class="product-info" data-id="${p.id}">
           <div class="name">${escapeHtml(p.name)}${dietTag(p)}</div>
           <div class="meta">${pending ? 'Tocca per aggiungere la scadenza' : formatDateIt(p.expiryDate)}${qtyText}</div>

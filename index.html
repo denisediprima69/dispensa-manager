@@ -231,6 +231,7 @@
   .u-when.soon { background: var(--warning-soft); color: var(--warning); }
   .u-when.late { background: var(--danger); color: #fff; font-size: 13px; padding: 6px 12px; }
   .u-when.late small { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; opacity: .85; line-height: 1.1; }
+  .urgent-item .u-photo { width: 42px; height: 42px; flex-shrink: 0; object-fit: contain; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 2px; box-sizing: border-box; }
   .urgent-item .u-name small { display: block; font-size: 11.5px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
   .expired-card .urgent-item .u-name small { color: #8A5A58; }
   .u-more { display: block; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-decoration: none; }
@@ -512,7 +513,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=9">
+<link rel="stylesheet" href="theme.css?v=10">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -877,6 +878,7 @@
       const days = daysUntil(p.expiryDate);
       if (kind === 'expired') {
         return `<div class="urgent-item">
+          ${p.photo ? `<img class="u-photo" src="${escapeHtml(p.photo)}" alt="" onerror="this.remove()">` : ''}
           <div class="u-name">${escapeHtml(p.name)}<small>scadeva il ${dateIt(p.expiryDate)}</small></div>
           <div class="u-right">
             <div class="u-when late"><small>scaduto da</small>${agoLabel(-days)}</div>
@@ -886,6 +888,7 @@
       }
       const w = whenSave(days);
       return `<div class="urgent-item">
+        ${p.photo ? `<img class="u-photo" src="${escapeHtml(p.photo)}" alt="" onerror="this.remove()">` : ''}
         <div class="u-name">${escapeHtml(p.name)}</div>
         <div class="u-when ${w.cls}">${w.text}</div>
       </div>`;

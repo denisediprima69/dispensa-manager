@@ -41,7 +41,7 @@
     const map = await loadKnown();
     const prev = map[code] || {};
     map[code] = { name: info.name, category: info.category, location: info.location, src: info.src || prev.src || 'user',
-      weight: info.weight != null ? info.weight : (prev.weight || ''), diet: info.diet || prev.diet || null };
+      weight: info.weight != null ? info.weight : (prev.weight || ''), diet: info.diet || prev.diet || null, image: info.image || prev.image || '' };
     await saveKnown(map);
   }
 
@@ -50,13 +50,13 @@
     const known = await loadKnown();
     // prodotti presi da Open Food Facts prima dell'arrivo di peso/dieta: li riscarico una volta
     const k = known[code];
-    const complete = k && (k.src !== 'off' || (k.diet && k.weight !== undefined));
+    const complete = k && (k.src !== 'off' || (k.diet && k.weight !== undefined && k.image !== undefined));
     if (complete) return Object.assign({ source: 'memoria' }, k);
     try {
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), 7000);
       const url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code) +
-        '.json?fields=product_name,product_name_it,brands,categories,categories_tags,conservation_conditions,conservation_conditions_it,quantity,product_quantity,product_quantity_unit,allergens_tags,traces_tags,labels_tags,ingredients_text,ingredients_text_it';
+        '.json?fields=product_name,product_name_it,brands,categories,categories_tags,conservation_conditions,conservation_conditions_it,quantity,product_quantity,product_quantity_unit,allergens_tags,traces_tags,labels_tags,ingredients_text,ingredients_text_it,image_front_small_url,image_front_url,image_url';
       const res = await fetch(url, { signal: ctl.signal });
       clearTimeout(timer);
       const data = await res.json();
@@ -65,17 +65,24 @@
         const name = (pr.product_name_it || pr.product_name || '').trim() || String(pr.brands || '').split(',')[0].trim();
         const rules = inferFromOFF(pr);
         if (name) {
-          const out = { name, category: rules.category, location: rules.location, weight: weightFromOFF(pr), diet: dietFromOFF(pr) };
+          const out = { name, category: rules.category, location: rules.location, weight: weightFromOFF(pr), diet: dietFromOFF(pr), image: imageFromOFF(pr) };
           remember(code, Object.assign({ src: 'off' }, out));
           return Object.assign({ source: 'openfoodfacts' }, out);
         }
-        return { name: '', category: rules.category, location: rules.location, weight: weightFromOFF(pr), diet: dietFromOFF(pr), source: 'sconosciuto' };
+        return { name: '', category: rules.category, location: rules.location, weight: weightFromOFF(pr), diet: dietFromOFF(pr), image: imageFromOFF(pr), source: 'sconosciuto' };
       }
     } catch (e) { /* rete assente o timeout */ }
     if (k) return Object.assign({ source: 'memoria' }, k);
     return { name: '', category: 'altro', location: 'dispensa', weight: '', diet: null, source: 'sconosciuto' };
   }
 
+
+  // ---------- foto del prodotto (Open Food Facts) ----------
+  function imageFromOFF(p) {
+    p = p || {};
+    const u = String(p.image_front_small_url || p.image_front_url || p.image_url || '').trim();
+    return /^https:\/\//.test(u) ? u : '';
+  }
 
   // ---------- peso ----------
   function weightFromOFF(p) {

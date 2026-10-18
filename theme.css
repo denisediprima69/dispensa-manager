@@ -47,13 +47,8 @@ h3 { font-size: var(--fs-h3) !important; line-height: 1.1 !important; font-weigh
 .eco-stat .num, .stat-num, .stat .num { font-size: var(--fs-num) !important; line-height: 1 !important; font-weight: 700; }
 .sr-only { font-size: 1px !important; }
 
-/* quadretti azzurri (gingham) sotto le intestazioni */
-header::after {
-  content: ''; display: block; height: 10px; margin: 14px -20px -16px;
-  background-color: var(--surface);
-  background-image: linear-gradient(90deg, rgba(168,192,216,.65) 50%, transparent 50%), linear-gradient(rgba(168,192,216,.65) 50%, transparent 50%);
-  background-size: 14px 14px;
-}
+/* intestazioni delle pagine: angoli di sotto arrotondati (niente piu' striscia a quadretti) */
+header { border-radius: 0 0 28px 28px; }
 
 /* schede morbide */
 .method-card, .chart-card, .card, .product-row, .item-row, .urgent-card, .eco-card, .intro, .scan-row, .tutorial-step, .step-card, .form-card {

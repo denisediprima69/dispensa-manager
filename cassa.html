@@ -50,6 +50,7 @@
   .scan-list { display: flex; flex-direction: column; gap: 8px; }
   .scan-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
   .scan-row .ico { font-size: 20px; }
+  .scan-row .pphoto { width: 30px; height: 30px; object-fit: contain; background: #fff; border-radius: 6px; display: block; }
   .scan-row .nm { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .scan-row .nm.unk { color: var(--warning); }
   .scan-row .qt { background: var(--accent-soft); color: var(--accent-ink); font-weight: 800; font-size: 12.5px; padding: 3px 9px; border-radius: 999px; }
@@ -81,7 +82,7 @@
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=9">
+<link rel="stylesheet" href="theme.css?v=10">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -178,7 +179,7 @@
     $('scan-list').innerHTML = items.slice().reverse().map((it) => {
       const unk = !it.loading && !it.name;
       return '<div class="scan-row" data-code="' + esc(it.code) + '">' +
-        '<span class="ico">' + (it.loading ? '⏳' : R.LOCATION_IMG[it.location] || '<img class="ic" src="assets/icons/scatola.svg" alt="">') + '</span>' +
+        '<span class="ico">' + (it.loading ? '⏳' : (it.image ? '<img class="pphoto" src="' + esc(it.image) + '" alt="" onerror="this.outerHTML=\'\'">' : (R.LOCATION_IMG[it.location] || '<img class="ic" src="assets/icons/scatola.svg" alt="">'))) + '</span>' +
         '<span class="nm ' + (unk ? 'unk' : '') + '">' + (it.loading ? 'Riconosco il prodotto…' : (unk ? 'Prodotto nuovo — lo nomini dopo' : esc(it.name))) + '</span>' +
         (it.qty > 1 ? '<span class="qt">×' + it.qty + '</span>' : '') +
         '<button aria-label="Rimuovi">×</button></div>';
@@ -208,7 +209,7 @@
     renderScanList();
     R.lookup(code).then((info) => {
       it.name = info.name; it.category = info.category; it.location = info.location; it.loading = false; it.source = info.source;
-      it.weight = info.weight || ''; it.diet = info.diet || null;
+      it.weight = info.weight || ''; it.diet = info.diet || null; it.image = info.image || '';
       R.dietCheck(info).then((chk) => {
         it.dietTags = chk.tags; it.dietLevel = chk.level; it.chk = chk;
         R.showDietAlert(info.name, chk);
@@ -311,11 +312,11 @@
         id: (now + i).toString(36) + Math.random().toString(36).slice(2, 7),
         name: it.name.trim(), category: it.category, quantity: it.qty,
         expiryDate: it.date || null, location: it.location, addedAt: new Date().toISOString(),
-        ...(it.weight && it.weight.trim() ? { weight: it.weight.trim() } : {}), ...(it.diet ? { diet: it.diet } : {})
+        ...(it.weight && it.weight.trim() ? { weight: it.weight.trim() } : {}), ...(it.diet ? { diet: it.diet } : {}), ...(it.image ? { photo: it.image } : {})
       });
     });
     try { await window.storage.set('dispensa-prodotti', JSON.stringify(products), false); } catch (e) { toast('Errore nel salvataggio'); $('save-btn').disabled = false; return; }
-    await Promise.all(items.map((it) => R.remember(it.code, { name: it.name.trim(), category: it.category, location: it.location, src: 'user', weight: it.weight, diet: it.diet })));
+    await Promise.all(items.map((it) => R.remember(it.code, { name: it.name.trim(), category: it.category, location: it.location, src: 'user', weight: it.weight, diet: it.diet, image: it.image })));
     toast('✓ ' + total() + ' prodotti nello Stipo');
     setTimeout(() => { location.href = 'lista-dispensa.html'; }, 700);
   }

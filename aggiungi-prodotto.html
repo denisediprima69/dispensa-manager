@@ -607,7 +607,7 @@
 <script src="date-picker.js?v=9"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=9">
+<link rel="stylesheet" href="theme.css?v=10">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1114,6 +1114,14 @@
   const nodbThumb = document.getElementById('nodb-thumb');
   const nodbStatus = document.getElementById('nodb-status');
   let productPhoto = null;
+  let currentImage = '';
+  function showOffPhoto(url) {
+    let el = document.getElementById('off-photo');
+    if (!url) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('img'); el.id = 'off-photo'; el.alt = ''; el.style.cssText = 'width:84px;height:84px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:14px;display:block;margin:10px auto 0;'; barcodeResultStatus.after(el); }
+    el.onerror = () => { el.remove(); currentImage = ''; };
+    el.src = url;
+  }
 
   function showNoDb() {
     nodbPanel.style.display = 'block';
@@ -1224,7 +1232,7 @@
   }
 
   function lookupOpenFoodFacts(barcode) {
-    currentBarcode = barcode;
+    currentBarcode = barcode; currentImage = '';
     barcodeResultStatus.classList.remove('found');
     barcodeResultText.textContent = 'Codice letto, riconosco il prodotto...';
 
@@ -1232,6 +1240,8 @@
       // posizione e categoria scelte in automatico (modificabili più sotto)
       setLocation(info.location);
       currentDiet = info.diet || null;
+      currentImage = info.image || '';
+      showOffPhoto(currentImage);
       if (info.weight && !productWeightInput.value.trim()) productWeightInput.value = info.weight;
       window.ProductRules.dietCheck(info).then((chk) => window.ProductRules.showDietAlert(info.name, chk));
       if (productCategoryInput.querySelector('option[value="' + info.category + '"]')) productCategoryInput.value = info.category;
@@ -1521,11 +1531,12 @@
       addedAt: new Date().toISOString()
     };
     if (productPhoto) product.photo = productPhoto;
+    else if (currentImage) product.photo = currentImage;
     const weight = productWeightInput.value.trim();
     if (weight) product.weight = weight;
     if (currentDiet) product.diet = currentDiet;
 
-    if (currentBarcode) window.ProductRules.remember(currentBarcode, { name, category: product.category, location: product.location, src: 'user', weight, diet: currentDiet });
+    if (currentBarcode) window.ProductRules.remember(currentBarcode, { name, category: product.category, location: product.location, src: 'user', weight, diet: currentDiet, image: currentImage });
     saveBtn.disabled = true;
     const products = await loadProducts();
     products.push(product);
