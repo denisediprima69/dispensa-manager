@@ -285,6 +285,14 @@
     margin: 0 0 14px;
   }
 
+  /* --- menu a tendina "Come funziona" --- */
+  .fold summary { list-style: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 15px 18px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent-ink, #C25A1E); box-shadow: var(--shadow-card); }
+  .fold summary::-webkit-details-marker { display: none; }
+  .fold-chev { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); position: relative; flex-shrink: 0; transition: transform .25s ease; }
+  .fold-chev::after { content: ''; position: absolute; left: 8px; top: 7px; width: 7px; height: 7px; border-right: 2.6px solid #fff; border-bottom: 2.6px solid #fff; transform: rotate(45deg); }
+  .fold[open] .fold-chev { transform: rotate(180deg); }
+  .fold[open] summary { margin-bottom: 14px; }
+
   /* --- Tutorial steps --- */
   .tutorial-list {
     display: flex;
@@ -439,8 +447,8 @@
   .chart-bars { display: flex; align-items: flex-end; gap: 12px; height: 150px; padding: 0 4px; }
   .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
   .chart-stack { width: 100%; max-width: 54px; display: flex; flex-direction: column-reverse; border-radius: 10px 10px 4px 4px; overflow: hidden; background: var(--bg); }
-  .chart-seg-saved { background: var(--accent); }
-  .chart-seg-wasted { background: var(--danger); }
+  .chart-seg-saved { background: #2FA566; }
+  .chart-seg-wasted { background: #E5484D; }
   .chart-total { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
   .chart-label { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; text-align: center; line-height: 1.2; }
   .chart-legend { display: flex; gap: 16px; justify-content: center; margin-top: 14px; font-size: 12px; color: var(--text-muted); }
@@ -517,7 +525,7 @@
 <script src="storage-shim.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="theme.css?v=10">
+<link rel="stylesheet" href="theme.css?v=11">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -702,7 +710,8 @@
     </section>
 
     <section>
-      <p class="section-label">Come funziona</p>
+      <details class="fold" id="how-fold">
+      <summary><span>Come funziona</span><span class="fold-chev" aria-hidden="true"></span></summary>
       <div class="tutorial-list">
         <div class="step-card">
           <div class="step-number">1</div>
@@ -726,6 +735,7 @@
           </div>
         </div>
       </div>
+      </details>
     </section>
 
     <section>
@@ -734,7 +744,7 @@
         <h2>Salvati e buttati, settimana per settimana</h2>
         <p class="chart-sub" id="chart-sub">Ogni volta che segni un prodotto come consumato o buttato, compare qui.</p>
         <div class="chart-bars" id="chart-bars"></div>
-        <div class="chart-legend"><span><i style="background:var(--ok)"></i>Salvati</span><span><i style="background:var(--danger)"></i>Buttati</span></div>
+        <div class="chart-legend"><span><i style="background:#2FA566"></i>Salvati</span><span><i style="background:#E5484D"></i>Buttati</span></div>
         <div class="chart-now"><span>In scadenza nei prossimi 7 giorni</span><b id="chart-expiring">0</b></div>
       </div>
     </section>

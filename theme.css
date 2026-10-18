@@ -62,7 +62,8 @@ header { border-radius: 0 0 28px 28px; }
 /* stati: verde -> azzurro */
 .status-dot.ok { background: var(--ok) !important; }
 .badge.ok { background: var(--ok-soft) !important; color: var(--ok-ink) !important; }
-.chart-seg-saved { background: var(--ok) !important; }
+.chart-seg-saved { background: #2FA566 !important; }
+.chart-seg-wasted { background: #E5484D !important; }
 
 /* --- Stile "colorato" (ispirato al riferimento Aptivo): fondo crema, tasselli pieni, forme morbide --- */
 :root {
