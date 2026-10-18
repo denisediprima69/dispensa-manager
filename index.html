@@ -78,16 +78,15 @@
 
   .hero-logo { height: 124px; width: auto; display: block; }
   .hero { padding: 0; gap: 0; margin: 0 -20px; }
-  .hero-top { position: relative; width: 100%; box-sizing: border-box; background: #3E7CC9; overflow: hidden;
+  .hero-top { position: relative; width: 100%; box-sizing: border-box; background: linear-gradient(180deg, #5FA0EA 0%, #3E7CC9 100%); overflow: hidden;
     border-radius: 0 0 38px 38px; padding: 42px 20px 96px; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-  .hero-top::before { content: ''; position: absolute; inset: -60px 0 -20px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 260'%3E%3Cpath d='M-10 150 C60 90 110 190 170 120 S300 60 410 130' fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='2'/%3E%3Cpath d='M20 40 C90 -10 140 70 200 20' fill='none' stroke='%23fff' stroke-opacity='.18' stroke-width='2'/%3E%3Ccircle cx='60' cy='70' r='6' fill='%23E37434'/%3E%3Ccircle cx='340' cy='60' r='9' fill='%23FAF3E3' fill-opacity='.85'/%3E%3Ccircle cx='310' cy='170' r='5' fill='%23F3C16B'/%3E%3Ccircle cx='38' cy='190' r='4' fill='%23FAF3E3' fill-opacity='.7'/%3E%3Ccircle cx='250' cy='30' r='4' fill='%23E37434'/%3E%3Ccircle cx='120' cy='30' r='3' fill='%23FAF3E3' fill-opacity='.7'/%3E%3C/svg%3E") center / cover no-repeat; transform: translate3d(0, var(--py, 0px), 0); will-change: transform; pointer-events: none; }
+  .hero-top::before { content: ''; position: absolute; right: 18px; bottom: 68px; width: 124px; height: 105px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 130 110'%3E%3Crect x='10' y='4' width='12' height='16' rx='3' fill='%23F3C16B'/%3E%3Crect x='3' y='18' width='26' height='92' rx='9' fill='%23FAF3E3'/%3E%3Crect x='3' y='54' width='26' height='24' fill='%23E37434'/%3E%3Crect x='38' y='36' width='50' height='10' rx='4' fill='%23F3C16B'/%3E%3Crect x='40' y='44' width='46' height='66' rx='10' fill='%23FAF3E3'/%3E%3Ccircle cx='63' cy='78' r='13' fill='%23E37434'/%3E%3Crect x='96' y='56' width='32' height='54' rx='6' fill='%23FAF3E3'/%3E%3Crect x='96' y='72' width='32' height='18' fill='%232FA566'/%3E%3Crect x='96' y='52' width='32' height='7' rx='3' fill='%23F3C16B'/%3E%3C/svg%3E") center bottom / contain no-repeat; transform: translate3d(0, var(--py, 0px), 0); will-change: transform; pointer-events: none; }
   .hero-fg { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; will-change: transform, opacity; }
   .hero .hero-top p { color: rgba(255,255,255,.95); font-weight: 500; }
   .tiles-box { position: relative; box-sizing: border-box; width: calc(100% - 32px); margin: -68px auto 0; background: #F3E6CB; border-radius: 28px; padding: 18px 16px 18px; box-shadow: 0 10px 28px rgba(60, 40, 10, .14); }
   .tiles-box .tiles { margin-top: 0; }
   .box-title { margin: 0 0 14px; text-align: center; font-size: 14px; font-weight: 600; color: #6B5A3E; }
   .hero-stipino { position: absolute; left: 0; top: 96px; width: 150px; z-index: 1; pointer-events: none; will-change: transform; }
-  .hero-stipino .dusty { display: block; }
   .hero-stipino img { width: 100%; display: block; transform: rotate(-8deg); }
   .tiles-box { z-index: 2; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -644,7 +643,7 @@
           <h1 class="sr-only">Lo Stipo</h1>
         </div>
       </div>
-      <div class="hero-stipino" id="hero-stipino" aria-hidden="true"><span class="dusty"><img src="assets/stipino-contento.svg" alt=""></span></div>
+      <div class="hero-stipino" id="hero-stipino" aria-hidden="true"><img src="assets/stipino-contento.svg" alt=""></div>
 
       <div class="tiles-box"><p class="box-title">Vediamo cosa abbiamo da salvare oggi</p><div class="tiles">
         <a href="lista-dispensa.html" class="tile tile-blue">
